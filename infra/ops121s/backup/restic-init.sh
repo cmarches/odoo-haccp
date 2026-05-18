@@ -4,6 +4,7 @@
 set -euo pipefail
 
 VPS_HOST="${VPS_HOST:?Définir VPS_HOST=user@ip_vps}"
+export RESTIC_PASSWORD="${RESTIC_PASSWORD:?Définir RESTIC_PASSWORD=votre_password_restic}"
 RESTIC_REPO="sftp:${VPS_HOST}:/backups/ops121s"
 
 echo "Initialisation repo Restic : ${RESTIC_REPO}"
