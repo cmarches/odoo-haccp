@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: haccp-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - haccp-net
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: haccp-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USER}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=aifluence
+      - DOCKER_INFLUXDB_INIT_BUCKET=haccp
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_TOKEN}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - haccp-net
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: haccp-portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - haccp-net
+
+  # L'image vNode est fournie par Vester lors de l'activation.
+  # Remplacer "vester/vnode-automation:latest" par l'image réelle.
+  # Le MAC address fixe (02:42:ac:11:00:02) stabilise l'empreinte machine pour la licence.
+  vnode:
+    image: vester/vnode-automation:latest
+    container_name: haccp-vnode
+    restart: unless-stopped
+    mac_address: "02:42:ac:11:00:02"
+    environment:
+      - TZ=Europe/Paris
+    volumes:
+      - ./vnode/config:/app/config
+      - ./vnode/data:/app/data
+    depends_on:
+      - mosquitto
+      - influxdb
+    networks:
+      - haccp-net
+
+networks:
+  haccp-net:
+    driver: bridge
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  influxdb_data:
+  portainer_data:
