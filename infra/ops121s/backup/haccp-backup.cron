@@ -1,0 +1,33 @@
+# Backup HACCP OPS121S → VPS
+# Installer dans /etc/cron.d/haccp-backup (chmod 644)
+#
+# /etc/haccp-backup.env (chmod 600) doit contenir :
+#   RESTIC_PASSWORD=votre_password_restic
+#   VPS_HOST=backup@ip_vps
+#   INFLUXDB_TOKEN=votre_token_influxdb
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# InfluxDB — backup quotidien à 2h00
+0 2 * * * root source /etc/haccp-backup.env && \
+  docker exec haccp-influxdb influx backup /tmp/influx-backup -t ${INFLUXDB_TOKEN} && \
+  restic -r sftp:${VPS_HOST}:/backups/ops121s backup /tmp/influx-backup --tag influxdb && \
+  restic -r sftp:${VPS_HOST}:/backups/ops121s forget --keep-daily 30 --keep-weekly 52 --keep-monthly 36 --prune && \
+  docker exec haccp-influxdb rm -rf /tmp/influx-backup \
+  >> /var/log/haccp-backup.log 2>&1
+
+# SQLite vNode (buffer offline) — toutes les 15 minutes
+*/15 * * * * root source /etc/haccp-backup.env && \
+  sqlite3 /opt/vnode/data/buffer.db ".backup /tmp/vnode-buffer.db" && \
+  restic -r sftp:${VPS_HOST}:/backups/ops121s backup /tmp/vnode-buffer.db --tag sqlite-buffer && \
+  restic -r sftp:${VPS_HOST}:/backups/ops121s forget --keep-hourly 24 --prune && \
+  rm -f /tmp/vnode-buffer.db \
+  >> /var/log/haccp-backup.log 2>&1
+
+# Config vNode + Docker Compose — hebdomadaire dimanche 3h00
+0 3 * * 0 root source /etc/haccp-backup.env && \
+  restic -r sftp:${VPS_HOST}:/backups/ops121s backup \
+    /opt/vnode/config /opt/docker/haccp --tag config && \
+  restic -r sftp:${VPS_HOST}:/backups/ops121s forget --keep-weekly 52 --prune \
+  >> /var/log/haccp-backup.log 2>&1
