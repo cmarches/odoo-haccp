@@ -97,6 +97,12 @@
           "values": {
             "name": "Humidité stockage sec — {{humidity}}% > 75%"
           }
+        },
+        {
+          "type": "http_post",
+          "url": "http://IP_VPS:8080/haccp-alerts",
+          "auth_basic": "haccp-admin:PASSWORD",
+          "body": "HACCP Alerte : Stockage sec {{humidity}}% > 75% HR"
         }
       ]
     }
