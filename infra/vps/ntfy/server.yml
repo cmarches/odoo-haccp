@@ -1,0 +1,13 @@
+# Remplacer base-url par le domaine ou IP réelle du VPS
+base-url: http://VOTRE_IP_VPS:8080
+
+cache-file: /var/lib/ntfy/cache.db
+auth-file: /var/lib/ntfy/auth.db
+auth-default-access: deny-all
+
+attachment-cache-dir: /var/cache/ntfy
+attachment-total-size-limit: 1G
+attachment-expiry-duration: 3h
+visitor-attachment-total-size-limit: 50m
+
+log-level: info
