@@ -66,6 +66,7 @@ services:
       - ODOO_API_KEY=${ODOO_API_KEY}
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER}
     depends_on:
       - odoo
     networks:
