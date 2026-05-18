@@ -1,14 +1,23 @@
 import os
 import xmlrpc.client
+from urllib.parse import urlencode
 from flask import Flask, request, Response
-from twilio.twiml.voice_response import VoiceResponse, Gather, Say
+from twilio.twiml.voice_response import VoiceResponse, Gather
 
 app = Flask(__name__)
 
-ODOO_URL = os.environ["ODOO_URL"]
-ODOO_DB = os.environ["ODOO_DB"]
-ODOO_USER = os.environ["ODOO_USER"]
-ODOO_API_KEY = os.environ["ODOO_API_KEY"]
+
+def _require_env(name: str) -> str:
+    val = os.environ.get(name)
+    if not val:
+        raise RuntimeError(f"Missing required env var: {name}")
+    return val
+
+
+ODOO_URL = _require_env("ODOO_URL")
+ODOO_DB = _require_env("ODOO_DB")
+ODOO_USER = _require_env("ODOO_USER")
+ODOO_API_KEY = _require_env("ODOO_API_KEY")
 
 
 def _odoo_client():
@@ -33,7 +42,7 @@ def twiml_alert():
     )
     gather = Gather(
         num_digits=1,
-        action=f"/haccp/ack-call?alert_id={alert_id}",
+        action="/haccp/ack-call?" + urlencode({"alert_id": alert_id}),
         timeout=10,
     )
     gather.say(
@@ -57,12 +66,9 @@ def ack_call():
 
     response = VoiceResponse()
     if digit == "1" and alert_id:
-        _acknowledge_alert(alert_id)
-        response.say(
-            "Prise en charge confirmée. Merci.",
-            language="fr-FR",
-            voice="Polly.Lea",
-        )
+        success = _acknowledge_alert(alert_id)
+        message = "Prise en charge confirmée. Merci." if success else "Erreur système. L'escalade est maintenue."
+        response.say(message, language="fr-FR", voice="Polly.Lea")
     else:
         response.say(
             "Action non reconnue. Escalade maintenue.",
@@ -72,16 +78,23 @@ def ack_call():
     return Response(str(response), mimetype="text/xml")
 
 
-def _acknowledge_alert(alert_id: str):
+def _acknowledge_alert(alert_id: str) -> bool:
+    try:
+        aid = int(alert_id)
+    except ValueError:
+        app.logger.error("Invalid alert_id=%r — not an integer", alert_id)
+        return False
     try:
         uid, models = _odoo_client()
         models.execute_kw(
             ODOO_DB, uid, ODOO_API_KEY,
             "quality.alert", "write",
-            [[int(alert_id)], {"user_id": uid}],
+            [[aid], {"user_id": uid}],
         )
+        return True
     except Exception as exc:
         app.logger.error("Odoo ACK failed alert_id=%s: %s", alert_id, exc)
+        return False
 
 
 if __name__ == "__main__":
