@@ -1,0 +1,104 @@
+{
+  "_doc": "Structure de référence des règles HACCP vNode — adapter aux écrans UI vNode réels",
+  "rules": [
+    {
+      "name": "HACCP_Frigo_Positif_Alerte",
+      "trigger": {
+        "device_id": "lht65-frigo-positif",
+        "field": "temperature",
+        "operator": ">",
+        "threshold": 4.0
+      },
+      "cooldown_minutes": 10,
+      "actions": [
+        {
+          "type": "odoo_xmlrpc",
+          "model": "quality.check",
+          "method": "create",
+          "values": {
+            "point_id": "QCP_ID_FRIGO_POSITIF",
+            "measure": "{{temperature}}"
+          }
+        },
+        {
+          "type": "odoo_xmlrpc",
+          "model": "quality.alert",
+          "method": "create",
+          "values": {
+            "name": "Dépassement frigo positif — {{temperature}}°C > 4°C"
+          }
+        },
+        {
+          "type": "http_post",
+          "url": "http://IP_VPS:8080/haccp-alerts",
+          "auth_basic": "haccp-admin:PASSWORD",
+          "body": "HACCP Alerte : Frigo positif {{temperature}}°C > 4°C"
+        }
+      ]
+    },
+    {
+      "name": "HACCP_Congelateur_Alerte",
+      "trigger": {
+        "device_id": "lht65-congelateur",
+        "field": "temperature",
+        "operator": ">",
+        "threshold": -15.0
+      },
+      "cooldown_minutes": 10,
+      "actions": [
+        {
+          "type": "odoo_xmlrpc",
+          "model": "quality.check",
+          "method": "create",
+          "values": {
+            "point_id": "QCP_ID_CONGELATEUR",
+            "measure": "{{temperature}}"
+          }
+        },
+        {
+          "type": "odoo_xmlrpc",
+          "model": "quality.alert",
+          "method": "create",
+          "values": {
+            "name": "Dépassement congélateur — {{temperature}}°C > -15°C"
+          }
+        },
+        {
+          "type": "http_post",
+          "url": "http://IP_VPS:8080/haccp-alerts",
+          "auth_basic": "haccp-admin:PASSWORD",
+          "body": "HACCP Alerte : Congélateur {{temperature}}°C > -15°C"
+        }
+      ]
+    },
+    {
+      "name": "HACCP_Stockage_Humidite_Alerte",
+      "trigger": {
+        "device_id": "lht65-stockage-sec",
+        "field": "humidity",
+        "operator": ">",
+        "threshold": 75.0
+      },
+      "cooldown_minutes": 30,
+      "actions": [
+        {
+          "type": "odoo_xmlrpc",
+          "model": "quality.check",
+          "method": "create",
+          "values": {
+            "point_id": "QCP_ID_STOCKAGE_SEC",
+            "measure": "{{humidity}}"
+          }
+        },
+        {
+          "type": "odoo_xmlrpc",
+          "model": "quality.alert",
+          "method": "create",
+          "values": {
+            "name": "Humidité stockage sec — {{humidity}}% > 75%"
+          }
+        }
+      ]
+    }
+  ]
+}
