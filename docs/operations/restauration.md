@@ -65,7 +65,7 @@ Cela restaure :
 - `/home/christian/haccp/odoo-bridge/bridge.py`
 - `/home/christian/haccp/haccp-backup.sh`
 
-> `bridge.env` n'est **pas** restauré par Restic (exclu volontairement). Le recréer depuis §4.
+> `bridge.env` n'est **pas** restauré par Restic (exclu volontairement). Le recréer depuis **§4.1** (Bitwarden).
 
 ### 1.5 Redémarrer les services
 
@@ -107,7 +107,7 @@ cp /tmp/odoo-haccp/infra/ops121s/haccp-backup.sh \
 chmod +x /home/christian/haccp/haccp-backup.sh
 ```
 
-### 2.4 Recréer bridge.env depuis le gestionnaire de secrets (§4)
+### 2.4 Recréer bridge.env depuis Bitwarden (§4.1)
 
 ```bash
 cat > /home/christian/haccp/odoo-bridge/bridge.env <<'EOF'
@@ -174,6 +174,59 @@ restic \
 ## 4. Gestion des secrets (bridge.env)
 
 `bridge.env` contient les clés API et ne doit jamais être dans Git. Il doit être sauvegardé dans un gestionnaire de secrets.
+
+### 4.1 Restaurer bridge.env depuis Bitwarden
+
+C'est l'étape à faire **dans tous les scénarios** (1, 2 et 3) après avoir restauré les fichiers.
+
+**Option A — Via l'interface web Bitwarden (recommandée) :**
+
+1. Ouvrir [vault.bitwarden.com](https://vault.bitwarden.com) ou l'app Bitwarden
+2. Dossier **AIFluence / HACCP** → chercher **HACCP bridge.env — \<Nom Client\>**
+3. Ouvrir la note → copier le contenu du champ *Notes*
+4. Sur OPS121S :
+
+```bash
+cat > /home/christian/haccp/odoo-bridge/bridge.env <<'EOF'
+# Coller ici le contenu copié depuis Bitwarden
+ODOO_URL=...
+ODOO_DB=...
+ODOO_LOGIN=...
+ODOO_KEY=...
+BRIDGE_PORT=5001
+FREE_MOBILE_USER=...
+FREE_MOBILE_KEY=...
+EOF
+
+chmod 600 /home/christian/haccp/odoo-bridge/bridge.env
+```
+
+5. Vérifier :
+
+```bash
+cat /home/christian/haccp/odoo-bridge/bridge.env
+# Toutes les valeurs doivent être renseignées (pas de <...>)
+```
+
+**Option B — Via Bitwarden CLI (si OPS121S a accès internet) :**
+
+```bash
+# Installer bw CLI sur OPS121S
+curl -LO https://github.com/bitwarden/clients/releases/latest/download/bw-linux-arm64.zip
+unzip bw-linux-arm64.zip -d /usr/local/bin/
+chmod +x /usr/local/bin/bw
+
+# Se connecter
+bw login aifluencedigital@gmail.com
+export BW_SESSION=$(bw unlock --raw)
+
+# Récupérer et écrire bridge.env
+bw get notes "HACCP bridge.env — <Nom Client>" > /home/christian/haccp/odoo-bridge/bridge.env
+chmod 600 /home/christian/haccp/odoo-bridge/bridge.env
+
+# Se déconnecter
+bw lock
+```
 
 ### Recommandation : Bitwarden (gratuit, auto-hébergeable)
 
