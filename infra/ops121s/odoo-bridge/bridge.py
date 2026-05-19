@@ -36,6 +36,9 @@ TWILIO_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
 TWILIO_FROM  = os.environ.get("TWILIO_FROM_NUMBER", "")
 TWILIO_TO    = os.environ.get("TWILIO_ALERT_NUMBER", "")
 
+FREE_MOBILE_USER = os.environ.get("FREE_MOBILE_USER", "")
+FREE_MOBILE_KEY  = os.environ.get("FREE_MOBILE_KEY", "")
+
 _odoo_uid = None
 _odoo_models = None
 
@@ -55,9 +58,28 @@ def odoo_connect():
 
 
 def send_sms(tag: str, value: float, tol_min, tol_max):
-    if not all([TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM, TWILIO_TO]):
-        return
     msg = f"[HACCP ALERTE] {tag} = {value} hors seuil [{tol_min}–{tol_max}]"
+    if FREE_MOBILE_USER and FREE_MOBILE_KEY:
+        _send_sms_free_mobile(msg)
+    elif all([TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM, TWILIO_TO]):
+        _send_sms_twilio(msg)
+
+
+def _send_sms_free_mobile(msg: str):
+    url = (
+        f"https://smsapi.free-mobile.fr/sendmsg"
+        f"?user={urllib.parse.quote(FREE_MOBILE_USER)}"
+        f"&pass={urllib.parse.quote(FREE_MOBILE_KEY)}"
+        f"&msg={urllib.parse.quote(msg)}"
+    )
+    try:
+        with urllib.request.urlopen(url, timeout=10):
+            log.info("SMS Free Mobile envoyé OK")
+    except Exception as e:
+        log.error("Erreur SMS Free Mobile: %s", e)
+
+
+def _send_sms_twilio(msg: str):
     url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json"
     data = urllib.parse.urlencode({"To": TWILIO_TO, "From": TWILIO_FROM, "Body": msg}).encode()
     req = urllib.request.Request(url, data=data, method="POST")
@@ -65,9 +87,9 @@ def send_sms(tag: str, value: float, tol_min, tol_max):
     req.add_header("Authorization", f"Basic {creds}")
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
-            log.info("SMS envoyé → %s (HTTP %s)", TWILIO_TO, resp.status)
+            log.info("SMS Twilio envoyé → %s (HTTP %s)", TWILIO_TO, resp.status)
     except Exception as e:
-        log.error("Erreur envoi SMS: %s", e)
+        log.error("Erreur SMS Twilio: %s", e)
 
 
 def create_quality_check(qcp_id: int, value: float, tag: str):
