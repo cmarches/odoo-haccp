@@ -1,0 +1,18 @@
+[Unit]
+Description=HACCP Odoo Bridge — vNode RestApiClient → Odoo quality.check
+After=network.target
+
+[Service]
+Type=simple
+User=christian
+WorkingDirectory=/home/christian/haccp/odoo-bridge
+ExecStart=/usr/bin/python3 /home/christian/haccp/odoo-bridge/bridge.py
+EnvironmentFile=/home/christian/haccp/odoo-bridge/bridge.env
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=haccp-odoo-bridge
+
+[Install]
+WantedBy=multi-user.target

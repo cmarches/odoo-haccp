@@ -1,127 +1,80 @@
-# VPS Hetzner — Déploiement Odoo 19 CE + ntfy.sh + Webhook Twilio
+# Serveur Odoo dédié — Configuration et instances
 
-## 1. Créer le VPS Hetzner
-- Console : https://console.hetzner.cloud
-- Type : **CX21** (2 vCPU, 4 GB RAM, 40 GB SSD) — ~5€/mois
-- OS : Ubuntu 22.04 LTS
-- SSH Key : ajouter votre clé publique
+## Présentation du serveur
 
-## 2. Docker Engine sur Ubuntu 22.04
-```bash
-ssh root@<ip_vps>
+| Paramètre | Valeur |
+|-----------|--------|
+| Hostname | ubuntuserver24odoo |
+| IP locale | 192.168.1.182 |
+| Accès SSH | `ssh christian@192.168.1.182` |
+| OS | Ubuntu 24.04 LTS |
 
-apt update && apt upgrade -y
-apt install -y ca-certificates curl gnupg
+## Cartographie des instances Odoo
 
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-  gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-chmod a+r /etc/apt/keyrings/docker.gpg
+| Port | Instance | Version | Base de données |
+|------|----------|---------|-----------------|
+| 8018 | Odoo 18 CE | 18.0 | odoo18_dev (à confirmer) |
+| 8019 | Odoo 19 CE | 19.0-20260421 | odoo19_dev |
+| 8028 | Odoo 18 EE | 18.0+e | odoo18e_dev (à confirmer) |
+| **8029** | **Odoo 19 EE** | **19.0+e-20260421** | **odoo19e_dev** |
 
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-  https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
-  tee /etc/apt/sources.list.d/docker.list > /dev/null
+Ports complémentaires :
+- `8218` / `8228` — Adminer (administration PostgreSQL via navigateur)
 
-apt update
-apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-docker --version
-```
+**Instance cible POC HACCP : Odoo 19 EE — port 8029**
 
-## 3. Déployer la stack VPS
+## Connexion Odoo 19 EE (instance POC HACCP)
 
-```bash
-mkdir -p /opt/docker/odoo
-# Depuis la machine de développement :
-scp -r infra/vps/* root@<ip_vps>:/opt/docker/odoo/
+| Paramètre | Valeur |
+|-----------|--------|
+| URL | `http://192.168.1.182:8029` |
+| Base de données | `odoo19e_dev` |
+| Utilisateur admin | `cmarchesseau@aifluencedigital.com` |
+| API Key | Stockée dans `.env` (ne pas committer) |
+| UID auth | 2 |
 
-# Sur le VPS :
-cd /opt/docker/odoo
-cp .env.example .env
-nano .env   # Remplir POSTGRES_PASSWORD et TWILIO_*
+## Modules installés (Odoo 19 EE / odoo19e_dev)
 
-# Démarrer PostgreSQL + Odoo + ntfy.sh d'abord (sans webhook)
-docker compose up -d db odoo ntfy
-docker compose logs -f odoo
-# Attendre : "odoo.service.server: HTTP service (werkzeug) running on ..."
-```
+- `quality_control` — Contrôle qualité HACCP (installé 2026-05-19)
+- Modules EE standards inclus dans la licence
 
-## 4. Initialiser la base de données Odoo
-```
-Ouvrir http://<ip_vps>:8069/web/database/manager
-→ Create Database
-  - Database Name : odoo
-  - Email : admin@aifluencedigital.fr
-  - Password : <choisir un password admin sécurisé>
-  - Language : French (fr)
-  - Country : France
-  - Demo data : Non (décoché)
-```
+## Générer une API Key Odoo
 
-## 5. Installer le module Quality Control
-```
-Apps → Rechercher "Quality Control" → Installer
-```
-Vérifier : le menu "Quality" apparaît dans la barre de navigation principale.
-
-## 6. Générer une API Key Odoo
 ```
 Settings → Technical → API Keys → New
 - Name : vNode HACCP
 - Expiration : (vide = permanente)
-→ Copier la clé → mettre dans /opt/docker/odoo/.env (ODOO_API_KEY)
+→ Copier la clé
 ```
 
-## 7. Démarrer le webhook Twilio
+Utiliser cette clé pour tous les appels XML-RPC du POC HACCP.
+
+## Test de connexion API
+
 ```bash
-docker compose up -d webhook
-docker compose logs webhook
-```
-Expected: `Running on http://0.0.0.0:5000`
-
-## 8. Configurer ntfy.sh
-
-### Mettre à jour server.yml avec l'IP réelle
-```bash
-# Éditer /opt/docker/odoo/ntfy/server.yml
-# Remplacer VOTRE_IP_VPS par l'IP Hetzner réelle
-docker compose restart ntfy
+python3 - <<'EOF'
+import xmlrpc.client
+url = "http://192.168.1.182:8029"
+db = "odoo19e_dev"
+login = "cmarchesseau@aifluencedigital.com"
+key = "<api_key>"
+common = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/common")
+uid = common.authenticate(db, login, key, {})
+print(f"UID: {uid}")  # → 2
+EOF
 ```
 
-### Créer l'utilisateur ntfy
-```bash
-docker exec odoo-ntfy ntfy user add --role=admin haccp-admin
-# Saisir un mot de passe sécurisé
+## Accès Adminer (PostgreSQL)
 
-docker exec odoo-ntfy ntfy access haccp-admin haccp-alerts rw
 ```
-
-### Test notification push
-```bash
-curl -u haccp-admin:<password> \
-  -d "Test HACCP ntfy — POC AIFluence Digital" \
-  http://<ip_vps>:8080/haccp-alerts
-```
-Expected : notification reçue dans l'app ntfy sur smartphone.
-
-## 9. Ouvrir les ports firewall VPS
-```bash
-# Hetzner Firewall (console cloud) → ajouter règles Inbound :
-# TCP 8069  — Odoo
-# TCP 8080  — ntfy.sh
-# TCP 5000  — webhook Twilio
-# TCP 22    — SSH
+http://192.168.1.182:8218   (pour l'instance 8018/8028)
+http://192.168.1.182:8228   (selon config)
 ```
 
-## 10. Vérification finale VPS
-```bash
-docker compose ps
-```
-Expected :
-```
-NAME            STATUS
-odoo-db         running
-odoo-app        running
-odoo-ntfy       running
-odoo-webhook    running
-```
+Permet d'inspecter les tables directement si nécessaire pour le debug.
+
+## Note sur l'architecture
+
+Les instances Odoo sont installées **en natif** sur le serveur dédié (pas Docker).  
+Chaque instance a son propre process Odoo, sa propre base PostgreSQL, et son propre port.  
+La gestion des services se fait via systemd : `sudo systemctl status odoo19ee` (à adapter selon le nom du service configuré).

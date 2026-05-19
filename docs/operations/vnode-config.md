@@ -1,4 +1,4 @@
-# vNode Automation — Configuration MQTT + REST API + Règles HACCP
+# vNode Automation — Configuration MQTT + Parser Custom HACCP
 
 ## Prérequis
 - Stack Docker OPS121S opérationnelle (Mosquitto, InfluxDB, Portainer)
@@ -6,116 +6,174 @@
 - Odoo 19 CE opérationnel + QCPs créés + API Key Odoo (odoo-qualite-qcp.md)
 - IDs des 3 QCPs notés
 
-## 1. Lancer vNode en mode démo POC
+## Architecture
 
-```bash
-cd /opt/docker/haccp
-docker compose up -d vnode
-docker compose logs -f vnode
+vNode 1.22.3 est installé **en natif** sur OPS121S (tarball Vester), géré par systemd.  
+Ne pas dockeriser — la licence est liée au MAC de l'interface physique.
+
+```
+TTN (eu1.cloud.thethings.network:8883 TLS)
+  ↓ MQTT uplink JSON
+vNode MqttClient (module v1.14.0)
+  ↓ Parser custom JS → $.output.push()
+vNode Tags (/HACCP/Frigo_Temperature, etc.)
+  ↓ sourceModule: MqttClient
+Bootstrap tag model
 ```
 
-En mode démo, vNode redémarre automatiquement toutes les 2h (comportement normal pour le POC).
+## 1. Accéder à l'interface vNode
 
-## 2. Accéder à l'interface vNode
+```
+URL WebUI : http://192.168.1.101:8003
+Login : admin / (mot de passe défini à l'installation)
+```
 
-Se référer à la documentation Vester pour le port et les identifiants de l'UI vNode.
-URL type : http://10.10.10.10:<PORT_VNODE>
+## 2. Vérifier l'état de vNode
 
-## 3. Module MQTT Client — Connexion TTN
+```bash
+sudo systemctl status vnode
+tail -f /home/christian/haccp/vnode/log/MqttClient/centralserver.MqttClient.$(date +%Y-%m-%d).log
+```
 
-Modules → MQTT Client → Add Connection :
+En mode démo, vNode s'arrête automatiquement toutes les 2h — `sudo systemctl restart vnode` pour relancer.
+
+## 3. Module MqttClient — Connexion TTN
+
+Fichier de config : `/home/christian/haccp/vnode/config/MqttClient/config.n3c`  
+Backup de référence : `infra/ops121s/vnode/config/MqttClient-config.n3c` (dans ce repo)
+
+### Connexion TTN_HACCP
+
 | Paramètre | Valeur |
 |-----------|--------|
 | Name | TTN_HACCP |
+| Protocol | mqtts (TLS) |
 | Host | eu1.cloud.thethings.network |
 | Port | 8883 |
-| SSL/TLS | Enabled |
 | Username | haccp-restaurant-poc@ttn |
-| Password | `<api_key TTN>` |
+| Password | `<api_key TTN>` (stockée chiffrée dans config.n3c) |
 | Client ID | vnode-haccp-ops121s |
-| Topic Subscribe | v3/haccp-restaurant-poc@ttn/devices/+/up |
-| QoS | 1 |
+| Protocol Version | MQTT 3.X (4) |
 
-Tester → Expected : "Connected"
+### Subscriber TTN_Uplink
 
-## 4. Module MQTT Client — Connexion Mosquitto local
-
-Add Connection (second) :
 | Paramètre | Valeur |
 |-----------|--------|
-| Name | Mosquitto_Local |
-| Host | mosquitto (service Docker) |
-| Port | 1883 |
-| SSL/TLS | Disabled |
-| QoS | 0 |
+| Topic | v3/haccp-restaurant-poc@ttn/devices/+/up |
+| QoS | 1 |
+| Encoding | binary |
+| Serializer | json |
+| **Parser** | **custom** (script JavaScript) |
 
-## 5. Mapping payload TTN → champs normalisés
+## 4. Parser Custom — Point critique
 
-Pour chaque device TTN (`lht65-frigo-positif`, `lht65-congelateur`, `lht65-stockage-sec`) :
+Le parser `mqttJson` est réservé à la communication vNode-à-vNode.  
+Pour du JSON TTN arbitraire, il faut obligatoirement le parser `custom`.
 
-```json
-{
-  "device_id": "$.end_device_ids.device_id",
-  "timestamp": "$.received_at",
-  "temperature": "$.uplink_message.decoded_payload.temperature_1",
-  "humidity": "$.uplink_message.decoded_payload.humidity",
-  "battery_v": "$.uplink_message.decoded_payload.battery_voltage"
+Script JavaScript du subscriber TTN_Uplink :
+
+```javascript
+var msg = $.input;
+var deviceId = msg.end_device_ids && msg.end_device_ids.device_id;
+var dp = msg.uplink_message && msg.uplink_message.decoded_payload;
+if (!dp) { $.logger.warn('No decoded_payload for device %s', deviceId || 'unknown'); return; }
+var ts = msg.received_at ? new Date(msg.received_at).getTime() : Date.now();
+var q = 192; // Good quality
+
+if (deviceId === 'lht65-frigo-positif') {
+  if (dp.temperature_1 !== undefined) $.output.push({tag:'lht65_frigo_temperature', value:dp.temperature_1, quality:q, ts:ts});
+  if (dp.humidity !== undefined) $.output.push({tag:'lht65_frigo_humidity', value:dp.humidity, quality:q, ts:ts});
+} else if (deviceId === 'lht65-congelateur') {
+  if (dp.temperature_1 !== undefined) $.output.push({tag:'lht65_congelateur_temperature', value:dp.temperature_1, quality:q, ts:ts});
+  if (dp.humidity !== undefined) $.output.push({tag:'lht65_congelateur_humidity', value:dp.humidity, quality:q, ts:ts});
+} else if (deviceId === 'lht65-stockage-sec') {
+  if (dp.temperature_1 !== undefined) $.output.push({tag:'lht65_stockage_temperature', value:dp.temperature_1, quality:q, ts:ts});
+  if (dp.humidity !== undefined) $.output.push({tag:'lht65_stockage_humidity', value:dp.humidity, quality:q, ts:ts});
 }
 ```
 
-## 6. Module REST API Client — Connexion Odoo
+**Variables disponibles dans le script :**
+- `$.input` : payload JSON désérialisé reçu du broker MQTT
+- `$.output` : tableau de sortie — `{tag: TAG_ADDRESS, value, quality, ts}`
+- `$.topic` : topic MQTT de réception
+- `$.logger` : logger vNode (`$.logger.info()`, `$.logger.warn()`, etc.)
+- `quality` : 0–63 = Bad, 64–127 = Uncertain, 192–255 = Good
 
-Modules → REST API Client → Add Target :
-| Paramètre | Valeur |
-|-----------|--------|
-| Name | Odoo_HACCP |
-| Base URL | http://`<ip_vps>`:8069/xmlrpc/2/object |
-| Auth | Basic — user: admin, password: `<odoo_api_key>` |
-| Content-Type | application/xml |
-| Timeout | 10s |
-| Retry on failure | 3 |
+**TAG_ADDRESS** = valeur du champ `tagAddress` dans la config source du tag (ex: `lht65_frigo_temperature`), ou le chemin complet du tag si `tagAddress` est vide.
 
-## 7. Règle HACCP — Frigo Positif
+## 5. Tags HACCP — Configuration source
 
-Rules → Add Rule :
+Fichier : `/home/christian/haccp/vnode/config/bootstrap/tags.n3c`
 
-**Trigger :** device `lht65-frigo-positif`, field `temperature` > 4.0
+Les 6 tags sont dans le groupe `/HACCP` du modèle `result` :
 
-**Actions :**
-1. Créer quality.check dans Odoo :
-   - Method : execute_kw
-   - Model : quality.check, method : create
-   - Payload : `{"point_id": <QCP_ID_FRIGO_POSITIF>, "measure": {{temperature}}}`
+| Tag path | tagAddress | Device TTN |
+|----------|------------|------------|
+| /HACCP/Frigo_Temperature | lht65_frigo_temperature | lht65-frigo-positif |
+| /HACCP/Frigo_Humidity | lht65_frigo_humidity | lht65-frigo-positif |
+| /HACCP/Congelateur_Temperature | lht65_congelateur_temperature | lht65-congelateur |
+| /HACCP/Congelateur_Humidity | lht65_congelateur_humidity | lht65-congelateur |
+| /HACCP/Stockage_Temperature | lht65_stockage_temperature | lht65-stockage-sec |
+| /HACCP/Stockage_Humidity | lht65_stockage_humidity | lht65-stockage-sec |
 
-2. Créer quality.alert dans Odoo :
-   - Model : quality.alert, method : create
-   - Payload : `{"name": "Dépassement frigo positif — {{temperature}}°C"}`
+Config source de chaque tag (dans `extensions.source`) :
+```json
+{
+  "enabled": true,
+  "type": "MqttClient",
+  "module": "MqttClient",
+  "config": {
+    "subscriber": "TTN_HACCP/TTN_Uplink",
+    "tagAddress": "lht65_frigo_temperature"
+  }
+}
+```
 
-3. Push ntfy :
-   - HTTP POST `http://<ip_vps>:8080/haccp-alerts`
-   - Auth : Basic haccp-admin:<password>
-   - Body : `HACCP Alerte : Frigo positif {{temperature}}°C > 4°C`
+## 6. Payload Formatter TTN — Point critique
 
-**Cooldown :** 10 min (éviter les alertes répétitives sur chaque uplink)
+Le codec Dragino LHT65 du Device Repository crashe sur les octets du capteur externe (`7FFFFFFF01`).  
+Utiliser un formatter custom au niveau **device** (pas application) :
 
-## 8. Règle HACCP — Congélateur
+```javascript
+function decodeUplink(input) {
+  return {
+    data: {
+      temperature_1: 3.5,
+      humidity: 62.1,
+      battery_voltage: 3.1
+    }
+  };
+}
+```
 
-**Trigger :** device `lht65-congelateur`, field `temperature` > -15.0
+⚠️ Ce formatter est **hardcodé** pour le POC (valeurs fixes). Remplacer par le décodeur LHT65 réel quand les capteurs physiques arrivent (voir `infra/ops121s/vnode/` pour le décodeur complet).
 
-**Actions identiques à Frigo Positif** (QCP_ID_CONGELATEUR, message adapté)
+## 7. Vérifier l'ingestion en temps réel
 
-## 9. Règle HACCP — Stockage Sec Humidité
+```bash
+# Tags vNode via MCP (depuis la machine de dev)
+curl -s -X POST "http://192.168.1.101:4003/mcp" \
+  -H "Authorization: Bearer <MCP_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"cli","version":"1.0"}}}'
+# Récupérer mcp-session-id puis appeler tag_describe
 
-**Trigger :** device `lht65-stockage-sec`, field `humidity` > 75.0
+# TTN Simulate Uplink (pour tester sans capteur physique)
+# TTN Console → End Devices → lht65-frigo-positif → Messaging → Simulate Uplink
+# Format payload : FineOffset, laisser les bytes par défaut
 
-**Actions :**
-1. quality.check (QCP_ID_STOCKAGE_SEC, measure : {{humidity}})
-2. quality.alert (nom : "Humidité stockage sec — {{humidity}}% > 75%")
-3. Push ntfy adapté
+# Mosquitto — écouter les uplinks bruts
+mosquitto_sub -h eu1.cloud.thethings.network -p 8883 --cafile /etc/ssl/certs/ca-certificates.crt \
+  -u "haccp-restaurant-poc@ttn" -P "<api_key>" \
+  -t "v3/haccp-restaurant-poc@ttn/devices/+/up" -v
+```
 
-**Cooldown :** 30 min
+## 8. Note — Message "No Handlers for tags configured for this module"
 
-## 10. Persistance InfluxDB
+Ce message apparaît dans le log MqttClient à chaque démarrage. Il est **sans conséquence** — il indique qu'aucun tag n'est configuré pour **publier** vers MQTT (direction tag → MQTT). La direction inverse (MQTT → tags) fonctionne normalement via le parser custom.
+
+## 9. Persistance InfluxDB (à configurer)
 
 Outputs → InfluxDB :
 | Paramètre | Valeur |
@@ -128,23 +186,15 @@ Outputs → InfluxDB :
 | Tags | device_id, zone |
 | Fields | temperature, humidity, battery_v |
 
-## 11. Vérifier l'ingestion en temps réel
+## 10. Déploiement initial — Si reconfiguration nécessaire
 
 ```bash
-# Logs vNode
-docker compose logs -f vnode
+# Restaurer la config MqttClient depuis le repo
+sudo cp infra/ops121s/vnode/config/MqttClient-config.n3c \
+  /home/christian/haccp/vnode/config/MqttClient/config.n3c
+sudo systemctl restart vnode
 
-# Vérifier InfluxDB — 5 dernières mesures
-source /opt/docker/haccp/.env
-curl -s "http://localhost:8086/api/v2/query?org=aifluence" \
-  -H "Authorization: Token ${INFLUXDB_TOKEN}" \
-  -H "Content-Type: application/vnd.flux" \
-  --data-raw '
-from(bucket: "haccp")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == "temperature_sensor")
-  |> last()
-'
+# Vérifier
+sudo systemctl status vnode
+tail /home/christian/haccp/vnode/log/MqttClient/centralserver.MqttClient.$(date +%Y-%m-%d).log
 ```
-
-Expected : JSON avec les dernières mesures des capteurs actifs.
