@@ -312,7 +312,45 @@ EOF
 chmod 600 /home/christian/haccp/odoo-bridge/bridge.env
 ```
 
-### 4.2 Créer les services systemd
+> `bridge.env` n'est **jamais** commité dans Git. Le sauvegarder immédiatement dans Bitwarden (§4.2 ci-dessous) avant de continuer.
+
+### 4.2 Sauvegarder les secrets dans Bitwarden
+
+**Pourquoi :** `bridge.env` contient toutes les clés API (Odoo, Free Mobile, Twilio). Sans cette sauvegarde, une restauration après panne nécessite de régénérer chaque clé à la main.
+
+**Procédure :**
+
+1. Ouvrir Bitwarden → dossier **AIFluence / HACCP**
+2. **+ Nouvel élément** → type **Note sécurisée**
+3. Remplir :
+
+```
+Nom     : HACCP bridge.env — <Nom Client>
+Dossier : AIFluence / HACCP
+Notes   :
+  ODOO_URL=https://odoo.aifluencedigital.com
+  ODOO_DB=haccp_<nom_client>
+  ODOO_LOGIN=haccp-<nom_client>@aifluencedigital.com
+  ODOO_KEY=<valeur réelle>
+  BRIDGE_PORT=5001
+  FREE_MOBILE_USER=<valeur réelle>
+  FREE_MOBILE_KEY=<valeur réelle>
+```
+
+4. Ajouter également dans **Champs personnalisés** :
+
+| Champ | Valeur |
+|-------|--------|
+| OPS121S IP | 192.168.X.Y |
+| OPS121S SSH password | `<mot de passe>` |
+| TTN API Key MQTT | `<valeur réelle>` |
+| Date installation | YYYY-MM-DD |
+
+5. **Enregistrer**
+
+> Si le client a Twilio : ajouter `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `TWILIO_ALERT_NUMBER` dans la même note.
+
+### 4.3 Créer les services systemd
 
 **vNode :**
 
@@ -570,6 +608,11 @@ restic -r sftp:<user>@<ip-nas>:/home/restic-repos/haccp-<client> snapshots
 - [ ] SMS FAIL reçu par le responsable
 - [ ] Numéro de téléphone correct
 
+### Secrets
+- [ ] Note Bitwarden créée (dossier AIFluence / HACCP)
+- [ ] `bridge.env` complet dans la note (toutes les clés réelles)
+- [ ] Champs personnalisés remplis (IP OPS121S, SSH, TTN API Key)
+
 ### Backup
 - [ ] Restic initialisé
 - [ ] Premier snapshot vérifié
@@ -617,7 +660,8 @@ Support AIFluence Digital
 | Odoo DB + QCPs | 30 min |
 | Tests bout en bout | 30 min |
 | Backup Restic | 15 min |
+| Secrets Bitwarden | 10 min |
 | Remise document client | 15 min |
-| **Total** | **~3h** |
+| **Total** | **~3h15** |
 
 > Prévoir 1h supplémentaire si c'est la première installation ou si le réseau Wi-Fi du client pose des problèmes.
