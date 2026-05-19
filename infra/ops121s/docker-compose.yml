@@ -44,24 +44,9 @@ services:
     networks:
       - haccp-net
 
-  # L'image vNode est fournie par Vester lors de l'activation.
-  # Remplacer "vester/vnode-automation:latest" par l'image réelle.
-  # Le MAC address fixe (02:42:ac:11:00:02) stabilise l'empreinte machine pour la licence.
-  vnode:
-    image: vester/vnode-automation:latest
-    container_name: haccp-vnode
-    restart: unless-stopped
-    environment:
-      - TZ=Europe/Paris
-    volumes:
-      - ./vnode/config:/app/config
-      - ./vnode/data:/app/data
-    depends_on:
-      - mosquitto
-      - influxdb
-    networks:
-      haccp-net:
-        mac_address: "02:42:ac:11:00:02"
+  # vNode est installé en natif via tarball Vester (vnode-setup-1.22.3-x86_64-linux-gnu.tar.gz)
+  # et géré par systemd (sudo systemctl status vnode).
+  # Ne pas dockeriser — la licence est liée au MAC de l'interface physique.
 
 networks:
   haccp-net:
