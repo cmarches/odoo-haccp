@@ -9,9 +9,12 @@ Body JSON : {"qcp_id": 1, "value": 3.5, "tag": "Frigo_Temperature", "quality": 1
 OPC quality codes : 0-63=Bad, 64-127=Uncertain, 192-255=Good
 On ignore les mesures Bad (quality < 64) — capteur déconnecté.
 """
+import base64
 import json
 import logging
 import os
+import urllib.parse
+import urllib.request
 import xmlrpc.client
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -27,6 +30,11 @@ ODOO_DB    = os.environ.get("ODOO_DB",    "odoo19e_dev")
 ODOO_LOGIN = os.environ.get("ODOO_LOGIN", "cmarchesseau@aifluencedigital.com")
 ODOO_KEY   = os.environ.get("ODOO_KEY",   "")
 LISTEN_PORT = int(os.environ.get("BRIDGE_PORT", "5001"))
+
+TWILIO_SID   = os.environ.get("TWILIO_ACCOUNT_SID", "")
+TWILIO_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
+TWILIO_FROM  = os.environ.get("TWILIO_FROM_NUMBER", "")
+TWILIO_TO    = os.environ.get("TWILIO_ALERT_NUMBER", "")
 
 _odoo_uid = None
 _odoo_models = None
@@ -44,6 +52,22 @@ def odoo_connect():
     _odoo_uid = uid
     log.info("Odoo connected — UID %s", uid)
     return uid, _odoo_models
+
+
+def send_sms(tag: str, value: float, tol_min, tol_max):
+    if not all([TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM, TWILIO_TO]):
+        return
+    msg = f"[HACCP ALERTE] {tag} = {value} hors seuil [{tol_min}–{tol_max}]"
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json"
+    data = urllib.parse.urlencode({"To": TWILIO_TO, "From": TWILIO_FROM, "Body": msg}).encode()
+    req = urllib.request.Request(url, data=data, method="POST")
+    creds = base64.b64encode(f"{TWILIO_SID}:{TWILIO_TOKEN}".encode()).decode()
+    req.add_header("Authorization", f"Basic {creds}")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            log.info("SMS envoyé → %s (HTTP %s)", TWILIO_TO, resp.status)
+    except Exception as e:
+        log.error("Erreur envoi SMS: %s", e)
 
 
 def create_quality_check(qcp_id: int, value: float, tag: str):
@@ -82,6 +106,7 @@ def create_quality_check(qcp_id: int, value: float, tag: str):
         )
         log.warning("ALERTE — %s=%s hors seuil [%s–%s] → check #%s FAIL",
                     tag, value, tol_min, tol_max, check_id)
+        send_sms(tag, value, tol_min, tol_max)
     else:
         log.info("OK — %s=%s → check #%s PASS", tag, value, check_id)
 

@@ -1,87 +1,131 @@
-# Alertes — Twilio Voice + SMS
+# Alertes HACCP — SMS Twilio + Voice
 
-## 1. Compte Twilio (POC)
-URL : https://console.twilio.com
+## Architecture des alertes
+
+```
+quality.check FAIL (bridge.py)
+  ├── Odoo : quality.alert créée (XML-RPC)
+  ├── SMS Twilio : notification immédiate responsable
+  └── Voice Twilio : escalade si pas d'ACK (via webhook Flask VPS)
+```
+
+Le bridge Python (`bridge.py`) gère les alertes SMS directement — pas de dépendance externe, stdlib pure.
+
+## 1. Compte Twilio
+
+URL : https://console.twilio.com  
 Le compte essai gratuit inclut ~15€ de crédit — suffisant pour valider le POC.
 
 ### Acheter un numéro France
 Phone Numbers → Buy a Number → Country: France → Voice + SMS → ~1€/mois
 
-### Variables à récupérer
-- **TWILIO_ACCOUNT_SID** : dans le Dashboard (format ACxx...)
+### Récupérer les credentials
+- **TWILIO_ACCOUNT_SID** : Dashboard (format `ACxx...`)
 - **TWILIO_AUTH_TOKEN** : Dashboard Twilio
-- **TWILIO_FROM_NUMBER** : numéro acheté (format +33XXXXXXXXX)
+- **TWILIO_FROM_NUMBER** : numéro acheté (format `+33XXXXXXXXX`)
 
-Ajouter dans `/opt/docker/odoo/.env` :
+## 2. Configurer le bridge pour les SMS
+
+Ajouter dans `/home/christian/haccp/odoo-bridge/bridge.env` :
+
 ```bash
 TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_FROM_NUMBER=+33XXXXXXXXX
+TWILIO_FROM_NUMBER=+33XXXXXXXXX_TWILIO
+TWILIO_ALERT_NUMBER=+33XXXXXXXXX_RESPONSABLE
 ```
 
-## 2. Configurer l'escalade vocale dans vNode
-
-Dans vNode → Rules → HACCP_Frigo_Positif_Alerte → Escalation (t+20 min sans ACK) :
-
-Ajouter une action HTTP POST vers l'API Twilio Calls :
-- URL : `https://api.twilio.com/2010-04-01/Accounts/<ACCOUNT_SID>/Calls.json`
-- Method : POST
-- Auth : Basic (`<ACCOUNT_SID>:<AUTH_TOKEN>`)
-- Body (form-encoded) :
-  ```
-  To=+33XXXXXXXXX_RESPONSABLE
-  From=+33XXXXXXXXX_TWILIO
-  Url=http://<ip_vps>:5000/haccp/twiml?device=Frigo+positif&duration=20&alert_id={{alert_id}}
-  ```
-
-Répéter pour les règles Congélateur et Stockage Sec.
-
-## 3. Tester le webhook TwiML (sans appel réel)
+Redémarrer le bridge :
 ```bash
-curl "http://<ip_vps>:5000/haccp/twiml?device=Frigo+positif&duration=20&alert_id=1"
+sudo systemctl restart haccp-odoo-bridge
+sudo journalctl -u haccp-odoo-bridge -f
 ```
 
-Expected :
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say language="fr-FR" voice="Polly.Lea">Alerte H A C C P urgente. Frigo positif
-    dépasse le seuil depuis 20 minutes. Appuyez sur 1 pour confirmer votre prise en charge.</Say>
-  <Gather numDigits="1" action="/haccp/ack-call?alert_id=1" timeout="10">
-    <Say language="fr-FR" voice="Polly.Lea">Appuyez sur 1, ou restez en ligne
-      pour déclencher l'escalade.</Say>
-  </Gather>
-  <Say language="fr-FR" voice="Polly.Lea">Pas de réponse.
-    Le responsable suivant va être contacté.</Say>
-</Response>
+Si les variables ne sont pas définies, le SMS est silencieusement ignoré (pas d'erreur).
+
+## 3. Tester le SMS
+
+Simuler un FAIL depuis TTN Console (température > 4°C) ou directement :
+
+```bash
+curl -s -X POST http://127.0.0.1:5001/quality-check \
+  -H "Content-Type: application/json" \
+  -d '{"qcp_id": 1, "value": 6.0, "tag": "Frigo_Temperature", "quality": 192}'
 ```
 
-## 4. Déclencher un appel de test Twilio
+Log attendu dans le bridge :
+```
+2026-05-19 18:23:33 WARNING ALERTE — Frigo_Temperature=6.0 hors seuil [-30.0–4.0] → check #N FAIL
+2026-05-19 18:23:34 INFO    SMS envoyé → +33XXXXXXXXX (HTTP 201)
+```
+
+SMS reçu :
+```
+[HACCP ALERTE] Frigo_Temperature = 6.0 hors seuil [-30.0–4.0]
+```
+
+## 4. Escalade vocale Twilio (si pas d'ACK sous 20 min)
+
+Le webhook Flask tourne sur le VPS (Task 4). Il génère le TwiML pour l'appel vocal.
+
+Appel de test manuel :
 ```bash
 curl -X POST \
   "https://api.twilio.com/2010-04-01/Accounts/<ACCOUNT_SID>/Calls.json" \
   -u "<ACCOUNT_SID>:<AUTH_TOKEN>" \
-  --data-urlencode "To=+33XXXXXXXXX" \
+  --data-urlencode "To=+33XXXXXXXXX_RESPONSABLE" \
   --data-urlencode "From=+33XXXXXXXXX_TWILIO" \
   --data-urlencode "Url=http://<ip_vps>:5000/haccp/twiml?device=Frigo+positif&duration=20&alert_id=1"
 ```
 
-Expected : appel reçu, voix Polly.Lea en français, pression sur 1 → confirmation.
-
-## 5. SMS — API Free Mobile (optionnel, si abonné Free)
-Espace client Free Mobile → Mon Compte → Mes options → Activer "Notifications par SMS"
-- Identifiant : (dans l'espace client)
-- Clé API : (dans l'espace client)
-
-Dans vNode → Rules → Action HTTP GET :
+Réponse vocale (Polly.Lea, fr-FR) :
 ```
-https://smsapi.free-mobile.fr/sendmsg?user=<ID>&pass=<KEY>&msg=HACCP+{{device_id}}+{{temperature}}%C2%B0C
+"Alerte HACCP urgente. Frigo positif dépasse le seuil depuis 20 minutes.
+Appuyez sur 1 pour confirmer votre prise en charge."
 ```
 
-## 6. SMS — OVH SMS (clients RGPD strict, données 100% France)
-- Console OVH : https://www.ovhcloud.com/fr/sms/
-- Créer un compte SMS OVH, acheter des crédits SMS
-- API endpoint : `https://www.ovh.com/cgi-bin/sms/http2sms.cgi`
-- Paramètres : account, login, password, from, to, message
+## 5. SMS Free Mobile (option sans coût, abonnés Free)
 
-Dans vNode → Rules → Action HTTP POST vers l'API OVH SMS.
+Espace client Free Mobile → Mon Compte → Mes options → Notifications par SMS → Activer
+
+Test direct :
+```bash
+curl "https://smsapi.free-mobile.fr/sendmsg?user=<ID>&pass=<KEY>&msg=HACCP+Test+Frigo+5.5%C2%B0C"
+```
+
+Cette option ne nécessite pas de modifier `bridge.py` — utile pour des tests rapides.
+
+## 6. SMS OVH (données 100% France, RGPD strict)
+
+Console OVH : https://www.ovhcloud.com/fr/sms/ → créer un compte SMS, acheter des crédits.
+
+```bash
+curl -X POST "https://www.ovh.com/cgi-bin/sms/http2sms.cgi" \
+  --data-urlencode "account=<COMPTE_SMS>" \
+  --data-urlencode "login=<LOGIN>" \
+  --data-urlencode "password=<PASSWORD>" \
+  --data-urlencode "from=HACCP" \
+  --data-urlencode "to=+33XXXXXXXXX" \
+  --data-urlencode "message=[HACCP ALERTE] Frigo 5.5°C > seuil 4°C"
+```
+
+À intégrer dans `bridge.py` à la place de (ou en complément de) Twilio si exigence RGPD.
+
+## 7. Variables d'environnement bridge.env complètes
+
+```bash
+# Odoo
+ODOO_URL=http://192.168.1.182:8029
+ODOO_DB=odoo19e_dev
+ODOO_LOGIN=cmarchesseau@aifluencedigital.com
+ODOO_KEY=<api_key_odoo>
+BRIDGE_PORT=5001
+
+# Twilio SMS (optionnel — désactivé si vide)
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_FROM_NUMBER=+33XXXXXXXXX
+TWILIO_ALERT_NUMBER=+33XXXXXXXXX_RESPONSABLE
+```
+
+Le fichier est en `chmod 600` sur OPS121S — ne jamais committer.
