@@ -81,7 +81,7 @@
         <field name="date_end"/>
         <field name="responsible_id"/>
         <field name="check_count" string="Mesures"/>
-        <field name="alert_count" string="Alertes"/>
+        <field name="alert_count" string="Alertes" decoration-danger="alert_count > 0"/>
         <field name="state" widget="badge"
                decoration-success="state == 'generated'"
                decoration-muted="state == 'draft'"/>
