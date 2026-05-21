@@ -6,6 +6,7 @@
       id="menu_haccp_reports_root"
       name="Rapports HACCP"
       parent="quality_control.menu_quality_root"
+      groups="quality.group_quality_user"
       sequence="25"/>
 
     <menuitem
@@ -13,6 +14,7 @@
       name="Rapports HACCP DDPP"
       parent="menu_haccp_reports_root"
       action="action_haccp_report"
+      groups="quality.group_quality_user"
       sequence="10"/>
   </data>
 </odoo>
