@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_haccp_report_user,haccp.report user,model_haccp_report,quality.group_quality_user,1,1,1,0
+access_haccp_report_manager,haccp.report manager,model_haccp_report,quality.group_quality_manager,1,1,1,1
