@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from odoo.tests.common import TransactionCase
 
 
@@ -155,17 +155,49 @@ class TestHaccpReportRenderer(TransactionCase):
 
     # --- _compute_frequency ---
 
-    def test_frequency_daily(self):
-        freq = self.renderer._compute_frequency(
-            self.point_frigo, 4, timedelta(days=7)
-        )
-        self.assertIn('jour', freq.lower())
+    def _make_checks_at_intervals(self, point, interval_minutes, count):
+        """Create `count` quality.check records spaced `interval_minutes` apart."""
+        base = datetime(2026, 1, 1, 8, 0, 0)
+        checks = self.env['quality.check']
+        for i in range(count):
+            c = self.env['quality.check'].create({
+                'point_id': point.id,
+                'measure': 2.0,
+                'quality_state': 'pass',
+            })
+            # Force create_date via SQL to control spacing
+            self.env.cr.execute(
+                "UPDATE quality_check SET create_date = %s WHERE id = %s",
+                (base + timedelta(minutes=interval_minutes * i), c.id),
+            )
+            c.invalidate_recordset(['create_date'])
+            checks |= c
+        return checks
 
-    def test_frequency_none_when_no_checks(self):
-        freq = self.renderer._compute_frequency(
-            self.point_frigo, 0, timedelta(days=7)
-        )
-        self.assertEqual(freq, 'N/A')
+    def test_frequency_continuous_many_close_checks(self):
+        """Many checks spaced 10 min → '10 min (continu)'."""
+        checks = self._make_checks_at_intervals(self.point_frigo, 10, 12)
+        freq = self.renderer._compute_frequency(checks)
+        self.assertEqual(freq, '10 min (continu)')
+
+    def test_frequency_continuous_zero_or_one_check(self):
+        """0 or 1 check → '10 min (continu)'."""
+        empty = self.env['quality.check']
+        self.assertEqual(self.renderer._compute_frequency(empty), '10 min (continu)')
+        one = self.env['quality.check'].browse(self.failing_check.id)
+        self.assertEqual(self.renderer._compute_frequency(one), '10 min (continu)')
+
+    def test_frequency_thirty_minutes(self):
+        """Checks spaced ~30 min → '30 min'."""
+        checks = self._make_checks_at_intervals(self.point_frigo, 30, 5)
+        freq = self.renderer._compute_frequency(checks)
+        self.assertEqual(freq, '30 min')
+
+    def test_frequency_two_hours(self):
+        """Checks spaced ~2 hours → '2.0 h'."""
+        checks = self._make_checks_at_intervals(self.point_frigo, 120, 5)
+        freq = self.renderer._compute_frequency(checks)
+        self.assertEqual(freq, '2.0 h')
 
 
 class TestHaccpReport(TransactionCase):

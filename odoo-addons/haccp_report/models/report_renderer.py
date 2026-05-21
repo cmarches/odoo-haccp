@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from odoo import models
 
 
@@ -11,12 +9,12 @@ class ReportHaccpDdpp(models.AbstractModel):
     # Public API (called by Odoo report engine + tests)
     # -------------------------------------------------------------------------
 
-    def _get_report_values(self, docids_or_record, data=None):
+    def _get_report_values(self, docids, data=None):
         """Return the template context dict for the HACCP DDPP report.
 
         Parameters
         ----------
-        docids_or_record : int | list[int] | haccp.report recordset
+        docids : int | list[int] | haccp.report recordset
             When called by the Odoo report engine the argument is a list of
             record IDs.  When called directly from tests it may be a recordset.
         data : dict | None
@@ -29,10 +27,10 @@ class ReportHaccpDdpp(models.AbstractModel):
             company, total_checks, total_alerts, global_rate
         """
         # Support both "report engine" call (list of ids) and direct test call
-        if hasattr(docids_or_record, '_name'):
-            report = docids_or_record
+        if hasattr(docids, '_name'):
+            report = docids
         else:
-            ids = [docids_or_record] if isinstance(docids_or_record, int) else list(docids_or_record)
+            ids = [docids] if isinstance(docids, int) else list(docids)
             report = self.env['haccp.report'].browse(ids)
 
         report.ensure_one()
@@ -78,10 +76,6 @@ class ReportHaccpDdpp(models.AbstractModel):
         # ------------------------------------------------------------------
         # Build stats list
         # ------------------------------------------------------------------
-        period_delta = timedelta(
-            seconds=(end_dt - start_dt).total_seconds()
-        ) if start_dt and end_dt else timedelta(days=0)
-
         stats = []
         for point in points:
             point_checks = checks_by_point.get(point.id, self.env['quality.check'])
@@ -95,7 +89,7 @@ class ReportHaccpDdpp(models.AbstractModel):
             val_avg = (sum(measures) / len(measures)) if measures else 0.0
 
             p_alert_count = alert_count_by_point.get(point.id, 0)
-            frequency = self._compute_frequency(point, count, period_delta)
+            frequency = self._compute_frequency(point_checks)
 
             stats.append({
                 'point': point,
@@ -133,40 +127,19 @@ class ReportHaccpDdpp(models.AbstractModel):
     # Internal helpers
     # -------------------------------------------------------------------------
 
-    def _compute_frequency(self, point, count, period_delta):
-        """Return a human-readable string describing check frequency.
-
-        Parameters
-        ----------
-        point : quality.point record (unused for now, kept for future rules)
-        count : int — number of checks performed in the period
-        period_delta : timedelta — duration of the report period
-
-        Returns
-        -------
-        str — e.g. "~1/jour", "~2/semaine", "N/A"
-        """
-        if count == 0 or period_delta.total_seconds() == 0:
-            return 'N/A'
-
-        days = period_delta.total_seconds() / 86400.0
-        if days < 1:
-            days = 1.0
-
-        rate_per_day = count / days
-
-        if rate_per_day >= 0.5:
-            # At least roughly once every two days → express per-day
-            rounded = round(rate_per_day)
-            if rounded < 1:
-                rounded = 1
-            return f'~{rounded}/jour'
-        elif rate_per_day >= 1 / 7:
-            # At least once a week
-            rate_per_week = rate_per_day * 7
-            return f'~{round(rate_per_week)}/semaine'
-        else:
-            rate_per_month = rate_per_day * 30
-            if rate_per_month < 1:
-                return '<1/mois'
-            return f'~{round(rate_per_month)}/mois'
+    def _compute_frequency(self, checks):
+        """Compute human-readable frequency from median interval between consecutive checks."""
+        if len(checks) < 2:
+            return '10 min (continu)'
+        dates = sorted(c.create_date for c in checks)
+        intervals = [
+            (dates[i] - dates[i - 1]).total_seconds() / 60
+            for i in range(1, len(dates))
+        ]
+        from statistics import median
+        med = median(intervals)
+        if med < 15:
+            return '10 min (continu)'
+        if med < 70:
+            return f'{int(round(med))} min'
+        return f'{round(med / 60, 1)} h'
