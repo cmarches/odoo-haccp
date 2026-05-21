@@ -1,2 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo><data/></odoo>
+<odoo>
+  <record id="action_report_haccp_ddpp" model="ir.actions.report">
+    <field name="name">Rapport HACCP DDPP</field>
+    <field name="model">haccp.report</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">haccp_report.report_haccp_ddpp</field>
+    <field name="report_file">haccp_report.report_haccp_ddpp</field>
+    <field name="print_report_name">'Rapport-HACCP-DDPP-' + object.date_start.strftime('%Y%m%d') + '-' + object.date_end.strftime('%Y%m%d')</field>
+    <field name="attachment">'Rapport-HACCP-DDPP-' + object.date_start.strftime('%Y%m%d') + '-' + object.date_end.strftime('%Y%m%d') + '.pdf'</field>
+    <field name="attachment_use">True</field>
+    <field name="paperformat_id" ref="base.paperformat_euro"/>
+    <field name="binding_model_id" ref="model_haccp_report"/>
+    <field name="binding_type">report</field>
+  </record>
+</odoo>
