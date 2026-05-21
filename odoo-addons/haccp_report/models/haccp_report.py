@@ -5,6 +5,7 @@ from odoo.tools.translate import _
 class HaccpReport(models.Model):
     _name = 'haccp.report'
     _description = 'Rapport HACCP DDPP'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date_start desc'
 
     name = fields.Char(
