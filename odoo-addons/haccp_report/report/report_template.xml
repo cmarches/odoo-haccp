@@ -86,7 +86,7 @@
                     <td style="text-align:center;"><t t-esc="stat['frequency']"/></td>
                     <td style="font-size:8.5px;">
                       <t t-if="stat['point'].failure_message">
-                        <t t-out="stat['point'].failure_message"/>
+                        <t t-esc="stat['point'].failure_message"/>
                       </t>
                       <t t-else="">Vérification + action corrective immédiate</t>
                     </td>
@@ -158,8 +158,7 @@
                  ═══════════════════════════════════════════════════ -->
             <t t-foreach="stats" t-as="stat">
               <t t-set="point_checks" t-value="checks_by_point.get(stat['point'].id)"/>
-              <div class="section-break"/>
-              <div class="haccp-section-title">
+              <div class="haccp-section-title section-break">
                 Relevés détaillés — <t t-esc="stat['point'].display_name"/>
               </div>
               <table class="haccp-table">
@@ -177,10 +176,10 @@
                       <td><t t-esc="chk.create_date.strftime('%d/%m/%Y %H:%M')"/></td>
                       <td style="text-align:center;"
                           t-att-class="'fail' if chk.quality_state == 'fail' else ''">
-                        <t t-esc="round(chk.measure, 1)"/> <t t-esc="chk.norm_unit"/>
+                        <t t-esc="round(chk.measure, 1)"/> <t t-esc="chk.point_id.norm_unit"/>
                       </td>
                       <td style="text-align:center;">
-                        ≤ <t t-esc="chk.tolerance_max"/> <t t-esc="chk.norm_unit"/>
+                        ≤ <t t-esc="chk.point_id.tolerance_max"/> <t t-esc="chk.point_id.norm_unit"/>
                       </td>
                       <td style="text-align:center;"
                           t-att-class="'pass' if chk.quality_state == 'pass' else 'fail'">
@@ -196,8 +195,7 @@
             <!-- ═══════════════════════════════════════════════════
                  SECTION 4 — NON-CONFORMITÉS
                  ═══════════════════════════════════════════════════ -->
-            <div class="section-break"/>
-            <div class="haccp-section-title alert">Non-conformités et actions correctives</div>
+            <div class="haccp-section-title section-break alert">Non-conformités et actions correctives</div>
             <t t-if="not alerts">
               <div style="padding:10px; background:#f0f9f0; border:1px solid #c8e6c9; font-size:10px; color:#1a7a1a;">
                 Aucune non-conformité enregistrée sur la période.
@@ -266,7 +264,7 @@
                     <div>Généré par Odoo 19 — AIFluence Digital</div>
                   </td>
                   <td style="text-align:center; vertical-align:bottom;">
-                    <div style="border:1px solid #ccc; width:160px; height:50px; margin:0 auto;"/>
+                    <div style="border:1px solid #ccc; width:160px; height:50px; margin:0 auto;"></div>
                     <div style="margin-top:4px;">
                       <t t-esc="o.responsible_id.name"/> — <t t-esc="o.date_end.strftime('%d/%m/%Y')"/>
                     </div>
