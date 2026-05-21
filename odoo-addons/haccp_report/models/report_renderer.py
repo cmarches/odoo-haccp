@@ -70,11 +70,19 @@ class ReportHaccpDdpp(models.AbstractModel):
             ('create_date', '<=', end_dt),
         ])
 
-        # Map alert → check → point for per-point alert counting
+        # Map alert → point for per-point alert counting.
+        # Primary path: alert.check_id.point_id (standard Odoo quality flow).
+        # Fallback: name-based matching for orphan alerts created without check_id
+        # (e.g. IoT bridge alerts). We match the point whose display_name contributes
+        # the most distinctive words to the alert name.
         alert_count_by_point = {}
         for alert in alerts:
+            pid = None
             if alert.check_id and alert.check_id.point_id:
                 pid = alert.check_id.point_id.id
+            else:
+                pid = self._match_alert_to_point(alert, points)
+            if pid:
                 alert_count_by_point[pid] = alert_count_by_point.get(pid, 0) + 1
 
         # ------------------------------------------------------------------
@@ -130,6 +138,29 @@ class ReportHaccpDdpp(models.AbstractModel):
     # -------------------------------------------------------------------------
     # Internal helpers
     # -------------------------------------------------------------------------
+
+    def _match_alert_to_point(self, alert, points):
+        """Match an orphan alert (no check_id) to the best-fitting quality.point by name.
+
+        Scores each point by counting how many of its distinctive words appear in
+        the alert display_name. Returns the id of the best match, or None.
+        Generic HACCP/surveillance words are excluded from scoring to avoid false
+        matches when all point names share a common suffix.
+        """
+        _STOP_WORDS = {'haccp', 'surveillance', 'humidite', 'humidité', 'alerte', 'hors', 'seuil'}
+        alert_lower = (alert.display_name or '').lower()
+        best_score = 0
+        best_pid = None
+        for point in points:
+            words = [
+                w for w in point.display_name.lower().split()
+                if len(w) > 3 and w not in _STOP_WORDS
+            ]
+            score = sum(1 for w in words if w in alert_lower)
+            if score > best_score:
+                best_score = score
+                best_pid = point.id
+        return best_pid if best_score > 0 else None
 
     def _compute_frequency(self, checks):
         """Compute human-readable frequency from median interval between consecutive checks."""

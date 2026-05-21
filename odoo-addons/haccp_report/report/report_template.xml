@@ -11,16 +11,16 @@
               .haccp-section-title {
                 font-size: 10px; font-weight: bold; color: #1a5276;
                 text-transform: uppercase; letter-spacing: 0.5px;
-                border-left: 3px solid #1a5276; padding-left: 6px;
+                border-left: 3px solid #1a5276; padding-left: 8px;
                 margin: 16px 0 8px 0;
               }
               .haccp-section-title.alert { border-left-color: #c0392b; color: #c0392b; }
-              .haccp-table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px; }
+              .haccp-table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px; table-layout: fixed; }
               .haccp-table th {
                 background-color: #1a5276; color: #fff;
-                padding: 4px 6px; text-align: left;
+                padding: 5px 8px; text-align: left; word-wrap: break-word;
               }
-              .haccp-table td { padding: 3px 6px; border-bottom: 1px solid #e8e8e8; }
+              .haccp-table td { padding: 5px 8px; border-bottom: 1px solid #e8e8e8; word-wrap: break-word; }
               .haccp-table tr:nth-child(even) td { background-color: #f7f9fc; }
               .haccp-table tr.fail td { background-color: #fdf0f0; }
               .pass { color: #1a7a1a; font-weight: bold; }
@@ -31,26 +31,29 @@
               .total-row td { background-color: #e8f0fe !important; font-weight: bold; }
               .section-break { page-break-before: always; }
               .legal-note { font-size: 8px; color: #888; font-style: italic; margin-top: 6px; }
+              .alert-table { width: 100%; table-layout: fixed; border-collapse: collapse; border: 1px solid #f5b7b1; background: #fdf8f8; margin-bottom: 8px; font-size: 9px; }
+              .alert-table td { padding: 5px 8px; word-wrap: break-word; vertical-align: top; }
             </style>
 
             <!-- ═══════════════════════════════════════════════════
                  EN-TÊTE RAPPORT (période + responsable)
                  ═══════════════════════════════════════════════════ -->
-            <table style="width:100%; margin-bottom:16px;">
+            <table style="width:100%; border-collapse:collapse; margin-bottom:16px; table-layout:fixed; background:#eef2f7; border:1px solid #c9d8e8;">
+              <colgroup><col style="width:58%;"/><col style="width:42%;"/></colgroup>
               <tr>
-                <td style="vertical-align:top;">
-                  <div style="font-size:8px; color:#888; text-transform:uppercase; letter-spacing:1px;">
+                <td style="vertical-align:middle; padding:10px 14px;">
+                  <div style="font-size:11px; font-weight:bold; color:#1a5276; text-transform:uppercase; letter-spacing:0.5px;">
                     Rapport de surveillance HACCP
                   </div>
-                  <div style="font-size:7px; color:#555; margin-top:2px;">
-                    Responsable qualité : <t t-esc="o.responsible_id.name"/>
+                  <div style="font-size:9px; color:#333; margin-top:5px;">
+                    Responsable qualité : <strong><t t-esc="o.responsible_id.name"/></strong>
                   </div>
                 </td>
-                <td style="text-align:right; vertical-align:top;">
-                  <div style="background:#1a5276; color:#fff; padding:4px 12px; font-weight:bold; font-size:9px;">
+                <td style="text-align:right; vertical-align:middle; padding:10px 14px;">
+                  <div style="background:#1a5276; color:#fff; padding:6px 14px; font-weight:bold; font-size:11px; white-space:nowrap;">
                     <t t-esc="o.date_start.strftime('%d/%m/%Y')"/> – <t t-esc="o.date_end.strftime('%d/%m/%Y')"/>
                   </div>
-                  <div style="font-size:8px; color:#888; margin-top:3px;">
+                  <div style="font-size:9px; color:#555; margin-top:5px; white-space:nowrap;">
                     Édité le <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
                   </div>
                 </td>
@@ -62,6 +65,13 @@
                  ═══════════════════════════════════════════════════ -->
             <div class="haccp-section-title">Plan HACCP — Points Critiques de Contrôle</div>
             <table class="haccp-table">
+              <colgroup>
+                <col style="width:33%;"/>
+                <col style="width:12%;"/>
+                <col style="width:12%;"/>
+                <col style="width:14%;"/>
+                <col style="width:29%;"/>
+              </colgroup>
               <thead>
                 <tr>
                   <th>Équipement / Zone</th>
@@ -104,6 +114,16 @@
                  ═══════════════════════════════════════════════════ -->
             <div class="haccp-section-title" style="margin-top:18px;">Synthèse de la période</div>
             <table class="haccp-table">
+              <colgroup>
+                <col style="width:38%;"/>
+                <col style="width:8%;"/>
+                <col style="width:11%;"/>
+                <col style="width:7%;"/>
+                <col style="width:7%;"/>
+                <col style="width:9%;"/>
+                <col style="width:11%;"/>
+                <col style="width:9%;"/>
+              </colgroup>
               <thead>
                 <tr>
                   <th>Équipement</th>
@@ -162,6 +182,12 @@
                 Relevés détaillés — <t t-esc="stat['point'].display_name"/>
               </div>
               <table class="haccp-table">
+                <colgroup>
+                  <col style="width:28%;"/>
+                  <col style="width:30%;"/>
+                  <col style="width:28%;"/>
+                  <col style="width:14%;"/>
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Date / Heure</th>
@@ -203,69 +229,77 @@
             </t>
             <t t-if="alerts">
               <t t-foreach="alerts" t-as="alert">
-                <div style="border:1px solid #f5b7b1; padding:8px 12px; margin-bottom:8px; background:#fdf8f8;">
-                  <table style="width:100%; font-size:9px; border-collapse:collapse;">
-                    <tr>
-                      <td style="width:50%; vertical-align:top;">
-                        <strong><t t-esc="alert.display_name"/></strong>
-                        — <t t-esc="alert.check_id.point_id.display_name if alert.check_id else 'N/A'"/>
-                      </td>
-                      <td style="text-align:right; vertical-align:top;">
-                        <t t-if="alert.stage_id.done">
-                          <span style="background:#27ae60;color:#fff;padding:2px 8px;">Clôturée</span>
-                        </t>
-                        <t t-else="">
-                          <span style="background:#c0392b;color:#fff;padding:2px 8px;">Ouverte</span>
-                        </t>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding-top:4px; color:#555;">
+                <table class="alert-table">
+                  <colgroup><col style="width:68%;"/><col style="width:32%;"/></colgroup>
+                  <tr>
+                    <td>
+                      <strong><t t-esc="alert.display_name"/></strong>
+                      <t t-if="alert.check_id and alert.check_id.point_id">
+                        — <t t-esc="alert.check_id.point_id.display_name"/>
+                      </t>
+                    </td>
+                    <td style="text-align:right;">
+                      <t t-if="alert.stage_id.done">
+                        <span style="background:#27ae60;color:#fff;padding:2px 6px;">Clôturée</span>
+                      </t>
+                      <t t-else="">
+                        <span style="background:#c0392b;color:#fff;padding:2px 6px;">Ouverte</span>
+                      </t>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="color:#555; padding-top:3px; padding-bottom:3px;">
+                      <t t-if="alert.check_id and alert.check_id.point_id">
                         Valeur : <strong class="fail">
-                          <t t-esc="round(alert.check_id.measure or 0, 1) if alert.check_id else 'N/A'"/>
-                          <t t-esc="alert.check_id.norm_unit if alert.check_id else ''"/>
+                          <t t-esc="round(alert.check_id.measure or 0, 1)"/>
+                          <t t-esc="alert.check_id.point_id.norm_unit"/>
                         </strong>
-                        — Seuil : ≤ <t t-esc="alert.check_id.tolerance_max if alert.check_id else 'N/A'"/>
-                        <t t-esc="alert.check_id.norm_unit if alert.check_id else ''"/>
-                      </td>
-                      <td style="text-align:right; color:#555; padding-top:4px;">
-                        Ouverte le : <t t-esc="alert.date_assign.strftime('%d/%m/%Y') if alert.date_assign else 'N/A'"/>
-                        <t t-if="alert.date_close">
-                          — Clôturée le : <t t-esc="alert.date_close.strftime('%d/%m/%Y')"/>
-                        </t>
-                      </td>
-                    </tr>
-                    <t t-if="alert.action_corrective">
-                      <tr>
-                        <td colspan="2" style="padding-top:4px; color:#333;">
-                          <strong>Action corrective :</strong>
-                          <t t-out="alert.action_corrective"/>
-                        </td>
-                      </tr>
-                    </t>
-                    <tr>
-                      <td colspan="2" style="padding-top:3px; color:#888; font-size:8.5px;">
-                        Responsable : <t t-esc="alert.user_id.name if alert.user_id else 'Non assigné'"/>
-                      </td>
-                    </tr>
-                  </table>
-                </div>
+                        — Seuil : ≤ <t t-esc="alert.check_id.point_id.tolerance_max"/>
+                        <t t-esc="alert.check_id.point_id.norm_unit"/>
+                      </t>
+                      <t t-else="">—</t>
+                    </td>
+                    <td style="text-align:right; color:#555; white-space:nowrap; padding-top:3px; padding-bottom:3px;">
+                      Signalée le : <t t-esc="alert.create_date.strftime('%d/%m/%Y') if alert.create_date else '—'"/>
+                      <t t-if="alert.date_close">
+                        <br/>Clôturée : <t t-esc="alert.date_close.strftime('%d/%m/%Y')"/>
+                      </t>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="color:#333; padding-top:4px; padding-bottom:2px;">
+                      <strong>Action effectuée :</strong>
+                      <t t-if="alert.action_corrective">
+                        <t t-out="alert.action_corrective"/>
+                      </t>
+                      <t t-else="">
+                        <div style="border-bottom:1px dashed #bbb; height:16px; margin-top:3px;"></div>
+                      </t>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="color:#888; font-size:8.5px; padding-top:3px;">
+                      Responsable : <t t-esc="alert.user_id.name if alert.user_id else 'Non assigné'"/>
+                    </td>
+                  </tr>
+                </table>
               </t>
             </t>
 
             <!-- ═══════════════════════════════════════════════════
                  SECTION 5 — SIGNATURE
                  ═══════════════════════════════════════════════════ -->
-            <div style="margin-top:30px; border-top:1px solid #ddd; padding-top:14px;">
-              <table style="width:100%; font-size:9px;">
+            <div style="break-before:page; page-break-before:always; display:block; padding-top:20px; border-top:1px solid #ddd;">
+              <table style="width:100%; font-size:9px; border-collapse:collapse; table-layout:fixed;">
+                <colgroup><col style="width:58%;"/><col style="width:42%;"/></colgroup>
                 <tr>
-                  <td style="vertical-align:bottom; color:#888;">
+                  <td style="vertical-align:bottom; color:#888; padding-right:12px;">
                     <div>Archivage obligatoire 3 ans — Art. 5 Règlement CE 852/2004</div>
                     <div>Généré par Odoo 19 — AIFluence Digital</div>
                   </td>
                   <td style="text-align:center; vertical-align:bottom;">
-                    <div style="border:1px solid #ccc; width:160px; height:50px; margin:0 auto;"></div>
-                    <div style="margin-top:4px;">
+                    <div style="border:1px solid #ccc; height:45px; margin-bottom:4px;"></div>
+                    <div>
                       <t t-esc="o.responsible_id.name"/> — <t t-esc="o.date_end.strftime('%d/%m/%Y')"/>
                     </div>
                   </td>
