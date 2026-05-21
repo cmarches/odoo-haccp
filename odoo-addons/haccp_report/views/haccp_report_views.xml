@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+  <!-- ── Form view ─────────────────────────────────────────────────── -->
+  <record id="haccp_report_view_form" model="ir.ui.view">
+    <field name="name">haccp.report.form</field>
+    <field name="model">haccp.report</field>
+    <field name="arch" type="xml">
+      <form string="Rapport HACCP DDPP">
+
+        <!-- Status bar -->
+        <header>
+          <button name="action_print_report"
+                  string="Générer le rapport PDF"
+                  type="object"
+                  class="btn-primary"/>
+          <field name="state" widget="statusbar"/>
+        </header>
+
+        <sheet>
+
+          <!-- Stat buttons -->
+          <div class="oe_button_box" name="button_box">
+
+            <button name="action_view_checks"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-check-square-o">
+              <field name="check_count" widget="statinfo"
+                     string="Mesures"/>
+            </button>
+
+            <button name="action_view_alerts"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-exclamation-triangle"
+                    invisible="alert_count == 0">
+              <field name="alert_count" widget="statinfo"
+                     string="Alertes"/>
+            </button>
+
+          </div>
+
+          <!-- Title -->
+          <div class="oe_title">
+            <h1>
+              <field name="name"/>
+            </h1>
+          </div>
+
+          <!-- Main fields -->
+          <group>
+            <group string="Période">
+              <field name="date_start"/>
+              <field name="date_end"/>
+            </group>
+            <group string="Responsable">
+              <field name="responsible_id"/>
+              <field name="company_id" groups="base.group_multi_company"/>
+            </group>
+          </group>
+
+        </sheet>
+
+        <!-- Chatter -->
+        <chatter/>
+
+      </form>
+    </field>
+  </record>
+
+  <!-- ── List view ─────────────────────────────────────────────────── -->
+  <record id="haccp_report_view_list" model="ir.ui.view">
+    <field name="name">haccp.report.list</field>
+    <field name="model">haccp.report</field>
+    <field name="arch" type="xml">
+      <list string="Rapports HACCP DDPP" default_order="date_start desc">
+        <field name="name"/>
+        <field name="date_start"/>
+        <field name="date_end"/>
+        <field name="responsible_id"/>
+        <field name="check_count" string="Mesures"/>
+        <field name="alert_count" string="Alertes" decoration-danger="alert_count > 0"/>
+        <field name="state" widget="badge"
+               decoration-success="state == 'generated'"
+               decoration-muted="state == 'draft'"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- ── Action window ─────────────────────────────────────────────── -->
+  <record id="action_haccp_report" model="ir.actions.act_window">
+    <field name="name">Rapports HACCP DDPP</field>
+    <field name="res_model">haccp.report</field>
+    <field name="view_mode">list,form</field>
+    <field name="context">{'default_responsible_id': uid}</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">
+        Créez votre premier rapport HACCP DDPP
+      </p>
+      <p>
+        Définissez une période, puis générez le rapport PDF réglementaire.
+      </p>
+    </field>
+  </record>
+
+</odoo>

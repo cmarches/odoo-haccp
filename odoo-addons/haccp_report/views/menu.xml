@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data>
+    <!-- Sous-menu Rapports dans l'app Qualité -->
+    <menuitem
+      id="menu_haccp_reports_root"
+      name="Rapports HACCP"
+      parent="quality_control.menu_quality_root"
+      groups="quality.group_quality_user"
+      sequence="25"/>
+
+    <menuitem
+      id="menu_haccp_report_ddpp"
+      name="Rapports HACCP DDPP"
+      parent="menu_haccp_reports_root"
+      action="action_haccp_report"
+      groups="quality.group_quality_user"
+      sequence="10"/>
+  </data>
+</odoo>
