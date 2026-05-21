@@ -13,7 +13,7 @@ DB="odoo19e_dev"
 ADDONS_PATH="/mnt/enterprise-addons,/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons"
 DB_HOST="db19e"
 DB_USER="odoo"
-DB_PASS="odoo19e_dev"
+DB_PASS="${ODOO_DB_PASS:-odoo19e_dev}"  # Override via env: export ODOO_DB_PASS=secret
 # Odoo 19 : --no-http ne fonctionne pas en dehors du sous-commande "server"
 # On utilise un port alternatif (8099) pour éviter le conflit avec le serveur principal
 HTTP_OPTS="--http-port=8099"

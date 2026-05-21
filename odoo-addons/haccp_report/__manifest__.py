@@ -5,6 +5,7 @@
     'category': 'Quality',
     'author': 'AIFluence Digital',
     'depends': ['quality_control', 'web', 'mail'],
+    # NOTE: requires Odoo Enterprise (quality_control module). Not compatible with Community Edition.
     'data': [
         'security/ir.model.access.csv',
         'report/report_action.xml',
@@ -15,5 +16,5 @@
     ],
     'installable': True,
     'application': False,
-    'license': 'LGPL-3',
+    'license': 'OPL-1',
 }

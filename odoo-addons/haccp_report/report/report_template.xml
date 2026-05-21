@@ -100,7 +100,7 @@
             </div>
 
             <!-- ═══════════════════════════════════════════════════
-                 SECTION 2 — TABLEAU DE SYNTHÈSE
+                 SECTION 1 — TABLEAU DE SYNTHÈSE
                  ═══════════════════════════════════════════════════ -->
             <div class="haccp-section-title" style="margin-top:18px;">Synthèse de la période</div>
             <table class="haccp-table">
@@ -157,7 +157,7 @@
                  SECTION 3 — RELEVÉS DÉTAILLÉS (par CCP)
                  ═══════════════════════════════════════════════════ -->
             <t t-foreach="stats" t-as="stat">
-              <t t-set="point_checks" t-value="checks_by_point.get(stat['point'].id)"/>
+              <t t-set="point_checks" t-value="checks_by_point.get(stat['point'].id) or []"/>
               <div class="haccp-section-title section-break">
                 Relevés détaillés — <t t-esc="stat['point'].display_name"/>
               </div>
@@ -176,7 +176,7 @@
                       <td><t t-esc="chk.create_date.strftime('%d/%m/%Y %H:%M')"/></td>
                       <td style="text-align:center;"
                           t-att-class="'fail' if chk.quality_state == 'fail' else ''">
-                        <t t-esc="round(chk.measure, 1)"/> <t t-esc="chk.point_id.norm_unit"/>
+                        <t t-esc="round(chk.measure or 0, 1)"/> <t t-esc="chk.point_id.norm_unit"/>
                       </td>
                       <td style="text-align:center;">
                         ≤ <t t-esc="chk.point_id.tolerance_max"/> <t t-esc="chk.point_id.norm_unit"/>
@@ -222,7 +222,7 @@
                     <tr>
                       <td style="padding-top:4px; color:#555;">
                         Valeur : <strong class="fail">
-                          <t t-esc="round(alert.check_id.measure, 1) if alert.check_id else 'N/A'"/>
+                          <t t-esc="round(alert.check_id.measure or 0, 1) if alert.check_id else 'N/A'"/>
                           <t t-esc="alert.check_id.norm_unit if alert.check_id else ''"/>
                         </strong>
                         — Seuil : ≤ <t t-esc="alert.check_id.tolerance_max if alert.check_id else 'N/A'"/>

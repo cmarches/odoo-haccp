@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 from odoo.tools.translate import _
 
 
@@ -44,6 +45,12 @@ class HaccpReport(models.Model):
         readonly=True,
     )
 
+    @api.constrains('date_start', 'date_end')
+    def _check_date_range(self):
+        for rec in self:
+            if rec.date_start and rec.date_end and rec.date_start > rec.date_end:
+                raise ValidationError(_('La date de fin doit être postérieure à la date de début.'))
+
     @api.depends('date_start', 'date_end')
     def _compute_name(self):
         for rec in self:
@@ -82,6 +89,12 @@ class HaccpReport(models.Model):
 
     def action_print_report(self):
         self.ensure_one()
+        # Delete cached attachment so report always regenerates with current data
+        existing = self.env['ir.attachment'].search([
+            ('res_model', '=', 'haccp.report'),
+            ('res_id', '=', self.id),
+        ])
+        existing.unlink()
         result = self.env.ref('haccp_report.action_report_haccp_ddpp').report_action(self)
         self.write({'state': 'generated'})
         return result
