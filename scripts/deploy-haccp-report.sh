@@ -2,7 +2,8 @@
 # scripts/deploy-haccp-report.sh
 # Usage: ./scripts/deploy-haccp-report.sh [--install|--update|--test]
 
-set -e
+set -euo pipefail
+cd "$(dirname "$0")/.."
 
 SERVER="christian@192.168.1.182"
 REMOTE_ADDONS="/home/christian/odoo-multiversion/v19e/addons"
@@ -25,6 +26,9 @@ elif [ "$MODE" = "--update" ]; then
 elif [ "$MODE" = "--test" ]; then
     echo "==> Lancement des tests..."
     ssh "$SERVER" "docker exec $CONTAINER odoo -d $DB --test-enable -i haccp_report --stop-after-init --addons-path='$ADDONS_PATH' --no-http"
+else
+    echo "ERROR: unknown mode '$MODE'. Use --install, --update, or --test." >&2
+    exit 1
 fi
 
 echo "==> Done."
