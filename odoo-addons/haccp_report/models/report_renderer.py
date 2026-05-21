@@ -1,3 +1,5 @@
+from statistics import median
+
 from odoo import models
 
 
@@ -51,6 +53,8 @@ class ReportHaccpDdpp(models.AbstractModel):
         checks_by_point = {}  # {point.id (int): recordset}
         for check in checks:
             pid = check.point_id.id
+            if not pid:
+                continue
             if pid not in checks_by_point:
                 checks_by_point[pid] = self.env['quality.check']
             checks_by_point[pid] |= check
@@ -136,7 +140,6 @@ class ReportHaccpDdpp(models.AbstractModel):
             (dates[i] - dates[i - 1]).total_seconds() / 60
             for i in range(1, len(dates))
         ]
-        from statistics import median
         med = median(intervals)
         if med < 15:
             return '10 min (continu)'
