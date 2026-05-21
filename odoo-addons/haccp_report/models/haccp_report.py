@@ -35,10 +35,12 @@ class HaccpReport(models.Model):
     check_count = fields.Integer(
         string='Nb mesures',
         compute='_compute_counts',
+        readonly=True,
     )
     alert_count = fields.Integer(
         string='Nb alertes',
         compute='_compute_counts',
+        readonly=True,
     )
 
     @api.depends('date_start', 'date_end')
@@ -56,10 +58,11 @@ class HaccpReport(models.Model):
         self.ensure_one()
         date_start_dt = fields.Datetime.to_datetime(self.date_start)
         date_end_dt = fields.Datetime.to_datetime(self.date_end).replace(
-            hour=23, minute=59, second=59
+            hour=23, minute=59, second=59  # NOTE: UTC-only deployment assumed
         )
         return date_start_dt, date_end_dt
 
+    @api.depends('date_start', 'date_end')
     def _compute_counts(self):
         for rec in self:
             if rec.date_start and rec.date_end:
@@ -91,8 +94,8 @@ class HaccpReport(models.Model):
             'res_model': 'quality.check',
             'view_mode': 'list,form',
             'domain': [
-                ('create_date', '>=', start_dt),
-                ('create_date', '<=', end_dt),
+                ('create_date', '>=', fields.Datetime.to_string(start_dt)),
+                ('create_date', '<=', fields.Datetime.to_string(end_dt)),
             ],
         }
 
@@ -105,7 +108,7 @@ class HaccpReport(models.Model):
             'res_model': 'quality.alert',
             'view_mode': 'list,form',
             'domain': [
-                ('create_date', '>=', start_dt),
-                ('create_date', '<=', end_dt),
+                ('create_date', '>=', fields.Datetime.to_string(start_dt)),
+                ('create_date', '<=', fields.Datetime.to_string(end_dt)),
             ],
         }
