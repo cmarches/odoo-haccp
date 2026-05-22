@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1400 1130" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<style>
+text { font-family: Inter, ui-sans-serif, sans-serif; }
+.lbl  { font-size:10px; fill:#e2e8f0; font-weight:600; }
+.lbl2 { font-size:9px;  fill:#475569; }
+.sect { font-size:9px;  fill:#64748b; font-weight:700; letter-spacing:1px; }
+.hdr  { font-size:11px; fill:#fff;    font-weight:700; }
+.hdr2 { font-size:9px;  fill:#ffffff; fill-opacity:0.55; font-weight:400; }
+.cas  { font-size:9px;  font-weight:800; letter-spacing:1px; fill-opacity:0.75; }
+.bt   { font-size:8px;  font-weight:700; }
+.dt   { font-size:8px;  fill:#64748b; }
+.ok   { font-size:8px;  fill:#4ade80; }
+.wn   { font-size:8px;  fill:#f97316; }
+.ci   { font-size:10px; fill:#4ade80; font-weight:600; }
+.cw   { font-size:10px; fill:#f97316; font-weight:600; }
+.cn   { font-size:10px; fill:#94a3b8; font-weight:600; }
+.cost { font-size:15px; font-weight:800; }
+.ci2  { font-size:8px;  fill:#475569; }
+.sta  { font-size:10px; font-weight:700; }
+</style>
+</defs>
+
+<!-- Background -->
+<rect width="1400" height="1130" fill="#0f172a"/>
+
+<!-- Title -->
+<text x="10" y="18" font-size="14" fill="#f8fafc" font-weight="700">Architecture HACCP IoT — Comparatif 6 scénarios</text>
+<text x="10" y="33" font-size="10" fill="#64748b">Du capteur au rapport PDF DDPP · Cloud ↔ On-premise · Coût mensuel récurrent · AIFluence Digital · 2026-05-22</text>
+
+<!-- ── COLUMN HEADER BACKGROUNDS ── -->
+<rect x="130" y="45" width="211" height="58" fill="#1e293b"/>
+<rect x="341" y="45" width="211" height="58" fill="#14532d"/>
+<rect x="552" y="45" width="211" height="58" fill="#1e3a5f"/>
+<rect x="763" y="45" width="211" height="58" fill="#312e81"/>
+<rect x="974" y="45" width="211" height="58" fill="#7c2d12"/>
+<rect x="1185" y="45" width="215" height="58" fill="#1e293b"/>
+
+<!-- Header accent borders -->
+<rect x="130" y="101" width="211" height="2" fill="#475569"/>
+<rect x="341" y="101" width="211" height="2" fill="#22c55e"/>
+<rect x="552" y="101" width="211" height="2" fill="#3b82f6"/>
+<rect x="763" y="101" width="211" height="2" fill="#6366f1"/>
+<rect x="974" y="101" width="211" height="2" fill="#f97316"/>
+<rect x="1185" y="101" width="215" height="2" fill="#64748b"/>
+
+<!-- Vertical column dividers -->
+<line x1="130"  y1="45" x2="130"  y2="1095" stroke="#1e293b" stroke-width="1"/>
+<line x1="341"  y1="45" x2="341"  y2="1095" stroke="#1e293b" stroke-width="1"/>
+<line x1="552"  y1="45" x2="552"  y2="1095" stroke="#1e293b" stroke-width="1"/>
+<line x1="763"  y1="45" x2="763"  y2="1095" stroke="#334155" stroke-width="2"/>
+<line x1="974"  y1="45" x2="974"  y2="1095" stroke="#1e293b" stroke-width="1"/>
+<line x1="1185" y1="45" x2="1185" y2="1095" stroke="#1e293b" stroke-width="1"/>
+
+<!-- ── HEADER TEXTS ── -->
+<!-- Cas A -->
+<text x="235" y="67"  class="hdr" text-anchor="middle" fill="#64748b">CE + OCA · Futur</text>
+<text x="235" y="80"  class="hdr2" text-anchor="middle">Sans licence EE · dev requis</text>
+<text x="235" y="97"  class="cas" text-anchor="middle" fill="#64748b">CAS A</text>
+<!-- Cas B -->
+<text x="446" y="65"  class="hdr" text-anchor="middle" fill="#86efac">⭐ VPS Lean</text>
+<text x="446" y="78"  class="hdr" text-anchor="middle" fill="#86efac">TTN Direct</text>
+<text x="446" y="90"  class="hdr2" text-anchor="middle">TTN → bridge → Odoo EE</text>
+<text x="446" y="100" class="cas" text-anchor="middle" fill="#86efac">CAS B</text>
+<!-- Cas C -->
+<text x="657" y="67"  class="hdr" text-anchor="middle" fill="#93c5fd">VPS Full Stack</text>
+<text x="657" y="80"  class="hdr2" text-anchor="middle">Chirpstack + vNode + Odoo EE</text>
+<text x="657" y="97"  class="cas" text-anchor="middle" fill="#93c5fd">CAS C</text>
+<!-- Cas D -->
+<text x="868" y="63"  class="hdr" text-anchor="middle" fill="#c7d2fe">🍴 Moyen Resto</text>
+<text x="868" y="76"  class="hdr" text-anchor="middle" fill="#c7d2fe">+ Edge Node</text>
+<text x="868" y="89"  class="hdr2" text-anchor="middle">Pi / OPS121S sur site</text>
+<text x="868" y="100" class="cas" text-anchor="middle" fill="#c7d2fe">CAS D</text>
+<!-- Cas E -->
+<text x="1079" y="63"  class="hdr" text-anchor="middle" fill="#fed7aa">🏢 Chaîne</text>
+<text x="1079" y="76"  class="hdr" text-anchor="middle" fill="#fed7aa">Multi-sites</text>
+<text x="1079" y="89"  class="hdr2" text-anchor="middle">Edge/site + VPS central</text>
+<text x="1079" y="100" class="cas" text-anchor="middle" fill="#fed7aa">CAS E</text>
+<!-- Cas F -->
+<text x="1292" y="67"  class="hdr" text-anchor="middle" fill="#94a3b8">🏫 Collectivité</text>
+<text x="1292" y="80"  class="hdr2" text-anchor="middle">DSI / réseau interne</text>
+<text x="1292" y="97"  class="cas" text-anchor="middle" fill="#94a3b8">CAS F</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 1 — CONNECTIVITÉ  y=103
+     ════════════════════════════════════════════ -->
+<rect x="0" y="103" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="116" class="sect">▸ CONNECTIVITÉ</text>
+
+<!-- Internet fixe  y=121 h=40 -->
+<rect x="0" y="121" width="1400" height="40" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="161" width="1400" height="1"  fill="#1e293b"/>
+<text x="5"    y="136" class="lbl">Internet fixe</text>
+<text x="5"    y="148" class="lbl2">fibre / ADSL</text>
+<text x="135"  y="136" class="ci">● Box FAI</text>
+<text x="135"  y="148" class="dt">idem Cas B</text>
+<text x="346"  y="136" class="ci">● Box FAI standard</text>
+<text x="346"  y="148" class="dt">ADSL ou fibre suffisant</text>
+<text x="557"  y="136" class="ci">● Fibre recommandée</text>
+<text x="557"  y="148" class="dt">latence gateway→VPS</text>
+<text x="768"  y="136" class="ci">● Fibre pro</text>
+<text x="768"  y="148" class="dt">recommandée</text>
+<text x="979"  y="136" class="ci">● Fibre pro/site</text>
+<text x="979"  y="148" class="dt">obligatoire</text>
+<text x="1190" y="136" class="ci">● LAN DSI</text>
+<text x="1190" y="148" class="dt">réseau interne</text>
+
+<!-- Failover 4G  y=161 h=40 -->
+<rect x="0" y="201" width="1400" height="1" fill="#1e293b"/>
+<text x="5"    y="176" class="lbl">Failover 4G</text>
+<text x="135"  y="176" class="cw">◐ Optionnel</text>
+<text x="346"  y="176" class="cw">◐ Optionnel</text>
+<text x="346"  y="188" class="dt">SIM ~10€/mois</text>
+<text x="557"  y="176" class="cw">◐ Optionnel</text>
+<text x="768"  y="176" class="ci">● Recommandé</text>
+<text x="768"  y="188" class="dt">routeur dual-WAN</text>
+<text x="979"  y="176" class="ci">● Obligatoire/site</text>
+<text x="1190" y="176" class="cn">◌ DSI décide</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 2 — RÉSEAU LORAWAN  y=201
+     ════════════════════════════════════════════ -->
+<rect x="0" y="201" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="214" class="sect">▸ RÉSEAU LORAWAN</text>
+
+<!-- Gateway  y=219 h=40 -->
+<rect x="0" y="219" width="1400" height="40" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="259" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="233" class="lbl">Gateway</text>
+<text x="5"   y="245" class="lbl2">RAK7268 ~120€</text>
+<!-- EDGE badges -->
+<rect x="135"  y="222" width="30" height="13" rx="2" fill="#164e63"/><text x="150"  y="231.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="135"  y="246" class="dt">1 gateway on-site</text>
+<rect x="346"  y="222" width="30" height="13" rx="2" fill="#164e63"/><text x="361"  y="231.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="346"  y="246" class="dt">1 gateway on-site</text>
+<rect x="557"  y="222" width="30" height="13" rx="2" fill="#164e63"/><text x="572"  y="231.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="557"  y="246" class="dt">1 gateway on-site</text>
+<rect x="768"  y="222" width="30" height="13" rx="2" fill="#164e63"/><text x="783"  y="231.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="768"  y="246" class="dt">1-2 selon surface</text>
+<rect x="979"  y="222" width="47" height="13" rx="2" fill="#164e63"/><text x="1002" y="231.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE/SITE</text>
+<text x="979"  y="246" class="dt">1 par restaurant</text>
+<rect x="1190" y="222" width="30" height="13" rx="2" fill="#164e63"/><text x="1205" y="231.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="1190" y="246" class="dt">1-2 selon bâtiment</text>
+
+<!-- LNS  y=259 h=50 -->
+<rect x="0" y="309" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="273" class="lbl">LNS</text>
+<text x="5"   y="285" class="lbl2">Network Server</text>
+<rect x="135"  y="262" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="154"  y="271.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="135"  y="285" class="dt">TTN gratuit</text>
+<rect x="346"  y="262" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="365"  y="271.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="346"  y="285" class="dt">TTN gratuit</text>
+<text x="346"  y="296" class="ok">zéro config</text>
+<rect x="557"  y="262" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="571"  y="271.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="557"  y="285" class="dt">Chirpstack self-hosted</text>
+<text x="557"  y="296" class="wn">config OTAA/clés</text>
+<rect x="768"  y="262" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="787"  y="271.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="768"  y="285" class="dt">TTN ou Chirpstack cloud</text>
+<rect x="979"  y="262" width="62" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="1010" y="271.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS CENTRAL</text>
+<text x="979"  y="285" class="dt">Chirpstack multi-tenant</text>
+<text x="979"  y="296" class="ok">tous sites centralisés</text>
+<rect x="1190" y="262" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="271.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+<text x="1190" y="285" class="dt">Chirpstack DSI</text>
+<text x="1190" y="296" class="wn">données hors cloud</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 3 — EDGE NODE  y=309
+     ════════════════════════════════════════════ -->
+<rect x="0" y="309" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="322" class="sect">▸ EDGE NODE (traitement local)</text>
+
+<!-- Edge Node  y=327 h=45 -->
+<rect x="0" y="327" width="1400" height="45" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="372" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="341" class="lbl">Edge Node</text>
+<text x="5"   y="353" class="lbl2">Pi / OPS121S</text>
+<rect x="135"  y="330" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="154"  y="339.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<rect x="346"  y="330" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="365"  y="339.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<text x="346"  y="353" class="wn">pas de fallback local</text>
+<rect x="557"  y="330" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="576"  y="339.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<text x="557"  y="353" class="dt">tout traitement sur VPS</text>
+<rect x="768"  y="330" width="30" height="13" rx="2" fill="#164e63"/><text x="783"  y="339.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="768"  y="353" class="dt">RPi 5 ou OPS121S</text>
+<text x="768"  y="363" class="ok">fallback si VPS down</text>
+<rect x="979"  y="330" width="47" height="13" rx="2" fill="#164e63"/><text x="1002" y="339.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE/SITE</text>
+<text x="979"  y="353" class="dt">OPS121S ~200€/site</text>
+<rect x="1190" y="330" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="339.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+<text x="1190" y="353" class="dt">serveur DSI existant</text>
+
+<!-- vNode  y=372 h=45 -->
+<rect x="0" y="417" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="386" class="lbl">vNode Automation</text>
+<rect x="135"  y="375" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="154"  y="384.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<rect x="346"  y="375" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="365"  y="384.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<text x="346"  y="398" class="dt">bridge.py direct</text>
+<rect x="557"  y="375" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="571"  y="384.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="557"  y="398" class="dt">parser MQTT + automation</text>
+<text x="557"  y="408" class="wn">licence MAC VPS à valider</text>
+<rect x="768"  y="375" width="30" height="13" rx="2" fill="#164e63"/><text x="783"  y="384.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="768"  y="398" class="dt">licence MAC physique OK</text>
+<rect x="979"  y="375" width="47" height="13" rx="2" fill="#164e63"/><text x="1002" y="384.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE/SITE</text>
+<text x="979"  y="398" class="dt">1 licence/site</text>
+<rect x="1190" y="375" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="384.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+<text x="1190" y="398" class="dt">serveur DSI</text>
+
+<!-- Mosquitto  y=417 h=38 -->
+<rect x="0" y="417" width="1400" height="38" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="455" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="431" class="lbl">Mosquitto MQTT</text>
+<text x="5"   y="443" class="lbl2">broker</text>
+<rect x="135"  y="420" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="154"  y="429.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<rect x="346"  y="420" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="365"  y="429.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<rect x="557"  y="420" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="571"  y="429.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="557"  y="443" class="dt">namespacing par client</text>
+<rect x="768"  y="420" width="30" height="13" rx="2" fill="#164e63"/><text x="783"  y="429.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<rect x="979"  y="420" width="47" height="13" rx="2" fill="#164e63"/><text x="1002" y="429.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE/SITE</text>
+<rect x="1190" y="420" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="429.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+
+<!-- InfluxDB  y=455 h=38 -->
+<rect x="0" y="493" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="469" class="lbl">InfluxDB</text>
+<text x="5"   y="481" class="lbl2">time-series</text>
+<rect x="135"  y="458" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="154"  y="467.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<rect x="346"  y="458" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="365"  y="467.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<text x="346"  y="481" class="dt">Odoo = seul stockage</text>
+<rect x="557"  y="458" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="576"  y="467.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<text x="557"  y="481" class="dt">optionnel sur VPS</text>
+<rect x="768"  y="458" width="42" height="13" rx="2" fill="#164e63"/><text x="789"  y="467.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE opt.</text>
+<text x="768"  y="481" class="dt">container Pi</text>
+<rect x="979"  y="458" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="998"  y="467.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="979"  y="481" class="dt">InfluxDB Cloud ~20-50€/mois</text>
+<rect x="1190" y="458" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="467.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+<text x="1190" y="481" class="dt">serveur DSI</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 4 — INTÉGRATION  y=493
+     ════════════════════════════════════════════ -->
+<rect x="0" y="493" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="506" class="sect">▸ INTÉGRATION IoT → ODOO</text>
+
+<!-- bridge.py  y=511 h=45 -->
+<rect x="0" y="511" width="1400" height="45" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="556" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="525" class="lbl">bridge.py</text>
+<text x="5"   y="537" class="lbl2">webhook HTTP</text>
+<rect x="135"  y="514" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="149"  y="523.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="135"  y="537" class="dt">à adapter pour OCA</text>
+<rect x="346"  y="514" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="360"  y="523.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="346"  y="537" class="dt">TTN webhook → Odoo</text>
+<text x="346"  y="547" class="ok">déjà développé ✓</text>
+<rect x="557"  y="514" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="571"  y="523.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="557"  y="537" class="dt">vNode → bridge → Odoo</text>
+<text x="557"  y="547" class="ok">déjà développé ✓</text>
+<rect x="768"  y="514" width="30" height="13" rx="2" fill="#164e63"/><text x="783"  y="523.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="768"  y="537" class="dt">vNode edge → Odoo VPS</text>
+<text x="768"  y="547" class="ok">déjà développé ✓</text>
+<rect x="979"  y="514" width="47" height="13" rx="2" fill="#164e63"/><text x="1002" y="523.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE/SITE</text>
+<rect x="1190" y="514" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="523.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 5 — BACKEND ODOO  y=556
+     ════════════════════════════════════════════ -->
+<rect x="0" y="556" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="569" class="sect">▸ BACKEND ODOO</text>
+
+<!-- Odoo  y=574 h=55 -->
+<rect x="0" y="629" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="588" class="lbl">Odoo</text>
+<text x="5"   y="600" class="lbl2">quality + rapport</text>
+<rect x="135"  y="577" width="42" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="156"  y="586.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS CE</text>
+<text x="135"  y="600" class="dt">Hetzner CX21 ~5€/mois</text>
+<text x="135"  y="611" class="dt">OCA quality (v19 ?)</text>
+<text x="135"  y="621" class="wn">non vérifié</text>
+<rect x="346"  y="577" width="42" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="367"  y="586.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS EE</text>
+<text x="346"  y="600" class="dt">Hetzner CX21 ~5-8€/mois</text>
+<text x="346"  y="611" class="dt">quality_control + haccp_report</text>
+<rect x="557"  y="577" width="42" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="578"  y="586.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS EE</text>
+<text x="557"  y="600" class="dt">Hetzner CX31 ~15€/mois</text>
+<text x="557"  y="611" class="dt">quality_control + haccp_report</text>
+<rect x="768"  y="577" width="42" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="789"  y="586.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS EE</text>
+<text x="768"  y="600" class="dt">Hetzner CX21 ~5-8€/mois</text>
+<rect x="979"  y="577" width="76" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="1017" y="586.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS CENTRAL EE</text>
+<text x="979"  y="600" class="dt">multi-company · CX41+ ~25-30€/mois</text>
+<rect x="1190" y="577" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="586.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+<text x="1190" y="600" class="dt">serveur DSI ou infogéré</text>
+<text x="1190" y="611" class="wn">marchés publics</text>
+
+<!-- Licence EE  y=629 h=40 -->
+<rect x="0" y="629" width="1400" height="40" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="669" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="643" class="lbl">Licence Odoo EE</text>
+<text x="5"   y="655" class="lbl2">par utilisateur</text>
+<text x="135"  y="643" font-size="11" fill="#4ade80" font-weight="700">0€</text>
+<text x="135"  y="655" class="dt">Odoo CE open source</text>
+<text x="346"  y="643" font-size="10" fill="#93c5fd" font-weight="700">~25-32€/user/mois</text>
+<text x="346"  y="655" class="dt">client paie Odoo SA</text>
+<text x="557"  y="643" font-size="10" fill="#93c5fd" font-weight="700">~25-32€/user/mois</text>
+<text x="768"  y="643" font-size="10" fill="#93c5fd" font-weight="700">~25-32€/user/mois</text>
+<text x="979"  y="643" font-size="10" fill="#93c5fd" font-weight="700">~25-32€/user/mois</text>
+<text x="979"  y="655" class="dt">× nb users × sites</text>
+<text x="1190" y="643" font-size="10" fill="#94a3b8" font-weight="700">Négocié DSI</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 6 — ALERTES  y=669
+     ════════════════════════════════════════════ -->
+<rect x="0" y="669" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="682" class="sect">▸ ALERTES</text>
+
+<!-- Push mobile  y=687 h=38 -->
+<rect x="0" y="687" width="1400" height="38" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="725" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="701" class="lbl">Push mobile</text>
+<text x="5"   y="713" class="lbl2">ntfy.sh</text>
+<rect x="135"  y="690" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="154"  y="699.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<rect x="346"  y="690" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="365"  y="699.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="346"  y="713" class="dt">ntfy.sh gratuit</text>
+<rect x="557"  y="690" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="576"  y="699.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="557"  y="713" class="dt">ntfy.sh gratuit</text>
+<rect x="768"  y="690" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="787"  y="699.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<rect x="979"  y="690" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="998"  y="699.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<rect x="1190" y="690" width="58" height="13" rx="2" fill="#14532d"/><text x="1219" y="699.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM opt.</text>
+<text x="1190" y="713" class="dt">ntfy self-hosted</text>
+
+<!-- SMS / Appel  y=725 h=38 -->
+<rect x="0" y="763" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="739" class="lbl">SMS / Appel</text>
+<text x="5"   y="751" class="lbl2">Free Mobile / Twilio</text>
+<rect x="135"  y="728" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="154"  y="737.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<rect x="346"  y="728" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="365"  y="737.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="346"  y="751" class="dt">Free Mobile gratuit</text>
+<rect x="557"  y="728" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="576"  y="737.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="557"  y="751" class="dt">Free Mobile / Twilio</text>
+<rect x="768"  y="728" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="787"  y="737.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="768"  y="751" class="dt">Twilio ~0.05€/SMS</text>
+<rect x="979"  y="728" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="998"  y="737.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="979"  y="751" class="dt">Twilio</text>
+<rect x="1190" y="728" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="1209" y="737.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="1190" y="751" class="dt">ou PABX interne</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 7 — RAPPORT  y=763
+     ════════════════════════════════════════════ -->
+<rect x="0" y="763" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="776" class="sect">▸ RAPPORT HACCP DDPP</text>
+
+<!-- PDF  y=781 h=40 -->
+<rect x="0" y="781" width="1400" height="40" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="821" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="795" class="lbl">PDF haccp_report</text>
+<rect x="135"  y="784" width="34" height="13" rx="2" fill="#0f172a" stroke="#475569" stroke-dasharray="3,2" stroke-width="0.8"/><text x="152"  y="793.5" class="bt" text-anchor="middle" fill="#475569">FUTUR</text>
+<text x="135"  y="807" class="dt">à réécrire pour CE/OCA</text>
+<rect x="346"  y="784" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="360"  y="793.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="346"  y="807" class="ok">Odoo EE · développé ✓</text>
+<rect x="557"  y="784" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="571"  y="793.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="557"  y="807" class="ok">Odoo EE · développé ✓</text>
+<rect x="768"  y="784" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="782"  y="793.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="768"  y="807" class="ok">développé ✓</text>
+<rect x="979"  y="784" width="76" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="1017" y="793.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS CENTRAL</text>
+<text x="979"  y="807" class="ok">développé ✓</text>
+<rect x="1190" y="784" width="47" height="13" rx="2" fill="#14532d"/><text x="1213" y="793.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+<text x="1190" y="807" class="ok">développé ✓</text>
+
+<!-- ════════════════════════════════════════════
+     SECTION 8 — MATÉRIEL  y=821
+     ════════════════════════════════════════════ -->
+<rect x="0" y="821" width="1400" height="18" fill="#1e293b"/>
+<text x="5" y="834" class="sect">▸ MATÉRIEL TERRAIN (one-shot)</text>
+
+<!-- Capteurs  y=839 h=38 -->
+<rect x="0" y="839" width="1400" height="38" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="877" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="853" class="lbl">Capteurs LHT65</text>
+<text x="5"   y="865" class="lbl2">~45€/pièce</text>
+<text x="135"  y="853" font-size="11" fill="#86efac" font-weight="700">3× = ~135€</text>
+<text x="346"  y="853" font-size="11" fill="#86efac" font-weight="700">3× = ~135€</text>
+<text x="557"  y="853" font-size="11" fill="#86efac" font-weight="700">3× = ~135€</text>
+<text x="768"  y="853" font-size="11" fill="#c7d2fe" font-weight="700">3-6× = ~135-270€</text>
+<text x="979"  y="853" font-size="11" fill="#fed7aa" font-weight="700">3-6×/site</text>
+<text x="1190" y="853" font-size="11" fill="#94a3b8" font-weight="700">5-15× selon surface</text>
+
+<!-- Gateway + Réseau  y=877 h=40 -->
+<rect x="0" y="917" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="891" class="lbl">Gateway + Réseau</text>
+<text x="5"   y="903" class="lbl2">RAK7268 + routeur</text>
+<text x="135"  y="891" font-size="11" fill="#86efac" font-weight="700">~120€</text>
+<text x="346"  y="891" font-size="11" fill="#86efac" font-weight="700">~120€</text>
+<text x="346"  y="903" class="dt">box FAI existante</text>
+<text x="557"  y="891" font-size="11" fill="#86efac" font-weight="700">~120€</text>
+<text x="768"  y="891" font-size="11" fill="#c7d2fe" font-weight="700">~270€</text>
+<text x="768"  y="903" class="dt">RAK7268 + routeur dual-WAN</text>
+<text x="979"  y="891" font-size="11" fill="#fed7aa" font-weight="700">~595€/site</text>
+<text x="979"  y="903" class="dt">RAK7268 + Dream Machine SE</text>
+<text x="1190" y="891" font-size="11" fill="#94a3b8" font-weight="700">~120€ + infra DSI</text>
+
+<!-- Edge HW  y=917 h=38 -->
+<rect x="0" y="917" width="1400" height="38" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="955" width="1400" height="2" fill="#334155"/>
+<text x="5"   y="931" class="lbl">Edge Node HW</text>
+<text x="135"  y="931" font-size="11" fill="#475569" font-weight="700">0€ · absent</text>
+<text x="346"  y="931" font-size="11" fill="#475569" font-weight="700">0€ · absent</text>
+<text x="557"  y="931" font-size="11" fill="#475569" font-weight="700">0€ · absent</text>
+<text x="768"  y="931" font-size="11" fill="#c7d2fe" font-weight="700">~80-200€</text>
+<text x="768"  y="943" class="dt">RPi 5 ou OPS121S</text>
+<text x="979"  y="931" font-size="11" fill="#fed7aa" font-weight="700">~200€/site</text>
+<text x="979"  y="943" class="dt">OPS121S</text>
+<text x="1190" y="931" font-size="11" fill="#94a3b8" font-weight="700">0€ · infra DSI</text>
+
+<!-- ════════════════════════════════════════════
+     COÛT MENSUEL  y=957 h=83
+     ════════════════════════════════════════════ -->
+<rect x="0" y="957" width="1400" height="83" fill="#080d16"/>
+<rect x="0" y="1040" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="975" class="lbl" fill="#94a3b8">Coût mensuel</text>
+<text x="5"   y="987" class="lbl2">récurrent · logiciel</text>
+<text x="135"  y="975" class="cost" fill="#64748b">~5€/mois</text>
+<text x="135"  y="990" class="ci2">VPS CX21 : 5€ · Odoo CE : 0€</text>
+<text x="135"  y="1002" class="ci2">Dev 3-5j requis · Matériel ~255€</text>
+<text x="346"  y="975" class="cost" fill="#4ade80">~30-40€/mois</text>
+<text x="346"  y="990" class="ci2">VPS CX21 : 5-8€ · Odoo EE 1u : 25-32€</text>
+<text x="346"  y="1002" class="ci2">TTN : 0€ · Matériel ~255€</text>
+<text x="557"  y="975" class="cost" fill="#93c5fd">~40-55€/mois</text>
+<text x="557"  y="990" class="ci2">VPS CX31 : 15€ · Odoo EE 1u : 25-32€</text>
+<text x="557"  y="1002" class="ci2">vNode : à confirmer · Matériel ~255€</text>
+<text x="768"  y="975" class="cost" fill="#c7d2fe">~35-55€/mois</text>
+<text x="768"  y="990" class="ci2">VPS CX21 : 5-8€ · Odoo EE : 25-64€</text>
+<text x="768"  y="1002" class="ci2">SIM 4G : 10€ · Matériel ~485-670€</text>
+<text x="979"  y="975" class="cost" fill="#fed7aa">~80-150€/mois</text>
+<text x="979"  y="990" class="ci2">VPS central : 25-30€ · Chirpstack : 10€</text>
+<text x="979"  y="1002" class="ci2">InfluxDB : 20-50€ · Matériel ~995€/site</text>
+<text x="1190" y="975" class="cost" fill="#94a3b8">~0-30€/mois</text>
+<text x="1190" y="990" class="ci2">Infra DSI mutualisée</text>
+<text x="1190" y="1002" class="ci2">Coût = intégration</text>
+
+<!-- ════════════════════════════════════════════
+     STATUT  y=1041 h=52
+     ════════════════════════════════════════════ -->
+<rect x="0" y="1041" width="1400" height="52" fill="#ffffff" fill-opacity="0.012"/>
+<rect x="0" y="1093" width="1400" height="1" fill="#1e293b"/>
+<text x="5"   y="1057" class="lbl" fill="#94a3b8">Statut dev.</text>
+<text x="135"  y="1057" class="sta" fill="#f97316">⚠ Non développé</text>
+<text x="135"  y="1070" class="dt">OCA v19 à vérifier · réécriture requis</text>
+<text x="346"  y="1057" class="sta" fill="#4ade80">✓ Opérationnel</text>
+<text x="346"  y="1070" class="dt">bridge.py + haccp_report OK</text>
+<text x="346"  y="1081" class="dt">adapter webhook TTN</text>
+<text x="557"  y="1057" class="sta" fill="#4ade80">✓ Opérationnel</text>
+<text x="557"  y="1070" class="dt">stack complète POC validée</text>
+<text x="768"  y="1057" class="sta" fill="#4ade80">✓ Opérationnel</text>
+<text x="768"  y="1070" class="dt">architecture POC actuelle</text>
+<text x="979"  y="1057" class="sta" fill="#f97316">⚠ À adapter</text>
+<text x="979"  y="1070" class="dt">multi-company + Chirpstack central</text>
+<text x="1190" y="1057" class="sta" fill="#f97316">⚠ À adapter</text>
+<text x="1190" y="1070" class="dt">contraintes DSI à qualifier</text>
+
+<!-- ════════════════════════════════════════════
+     LÉGENDE  y=1097
+     ════════════════════════════════════════════ -->
+<rect x="5"   y="1100" width="38" height="13" rx="2" fill="#1e3a5f"/><text x="24"   y="1109.5" class="bt" text-anchor="middle" fill="#93c5fd">CLOUD</text>
+<text x="47"  y="1110" class="dt"> provider tiers</text>
+<rect x="145" y="1100" width="28" height="13" rx="2" fill="#1e293b" stroke="#475569" stroke-width="0.8"/><text x="159"  y="1109.5" class="bt" text-anchor="middle" fill="#e2e8f0">VPS</text>
+<text x="177" y="1110" class="dt"> serveur hébergé</text>
+<rect x="285" y="1100" width="30" height="13" rx="2" fill="#164e63"/><text x="300"  y="1109.5" class="bt" text-anchor="middle" fill="#a5f3fc">EDGE</text>
+<text x="319" y="1110" class="dt"> matériel local</text>
+<rect x="415" y="1100" width="47" height="13" rx="2" fill="#14532d"/><text x="438"  y="1109.5" class="bt" text-anchor="middle" fill="#86efac">ON-PREM</text>
+<text x="466" y="1110" class="dt"> serveur DSI</text>
+<rect x="555" y="1100" width="38" height="13" rx="2" fill="#0f172a" stroke="#1e293b" stroke-width="0.5"/><text x="574"  y="1109.5" class="bt" text-anchor="middle" fill="#334155">ABSENT</text>
+<text x="597" y="1110" class="dt"> composant supprimé</text>
+<rect x="720" y="1100" width="34" height="13" rx="2" fill="#0f172a" stroke="#475569" stroke-dasharray="3,2" stroke-width="0.8"/><text x="737"  y="1109.5" class="bt" text-anchor="middle" fill="#475569">FUTUR</text>
+<text x="758" y="1110" class="dt"> non développé</text>
+<text x="855" y="1110" font-size="9" fill="#4ade80">⭐ Cas B = baseline recommandée    ¦ = séparation sans-edge / avec-edge</text>
+
+</svg>
