@@ -153,3 +153,38 @@ class TestHaccpDecongelation(TransactionCase):
         })
         expected = (debut + timedelta(hours=12)).date() + timedelta(days=1)
         self.assertEqual(rec.dlc_secondaire, expected)
+
+
+class TestHaccpReassort(TransactionCase):
+
+    def _make_reas(self, stock, conso, delai, securite=0.0):
+        return self.env['haccp.reassort'].create({
+            'stock_actuel': stock,
+            'conso_journaliere': conso,
+            'delai_livraison': delai,
+            'stock_securite': securite,
+        })
+
+    def test_point_commande(self):
+        rec = self._make_reas(100, 10, 3, 5)
+        self.assertAlmostEqual(rec.point_commande, 35.0, places=2)
+
+    def test_jours_restants(self):
+        rec = self._make_reas(100, 10, 3, 5)
+        self.assertAlmostEqual(rec.jours_restants, 6.5, places=2)
+
+    def test_statut_ok(self):
+        rec = self._make_reas(100, 10, 3, 5)
+        self.assertEqual(rec.statut, '✓ OK')
+
+    def test_statut_commander(self):
+        rec = self._make_reas(30, 10, 3, 5)
+        self.assertEqual(rec.statut, '✗ COMMANDER MAINTENANT')
+
+    def test_statut_exactement_au_point(self):
+        rec = self._make_reas(35, 10, 3, 5)
+        self.assertEqual(rec.statut, '✗ COMMANDER MAINTENANT')
+
+    def test_conso_zero_jours_restants_zero(self):
+        rec = self._make_reas(100, 0, 3, 5)
+        self.assertEqual(rec.jours_restants, 0.0)

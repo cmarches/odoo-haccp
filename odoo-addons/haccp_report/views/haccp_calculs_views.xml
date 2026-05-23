@@ -60,6 +60,37 @@
       <field name="target">new</field>
     </record>
 
+    <!-- ===== Réassort ===== -->
+    <record id="view_haccp_reassort_form" model="ir.ui.view">
+      <field name="name">haccp.reassort.form</field>
+      <field name="model">haccp.reassort</field>
+      <field name="arch" type="xml">
+        <form string="Calculateur de point de réassort">
+          <group string="Paramètres">
+            <field name="stock_actuel"/>
+            <field name="conso_journaliere"/>
+            <field name="delai_livraison"/>
+            <field name="stock_securite"/>
+          </group>
+          <group string="Résultat">
+            <field name="point_commande" readonly="True"/>
+            <field name="jours_restants" readonly="True"/>
+            <field name="statut" readonly="True"/>
+          </group>
+          <footer>
+            <button string="Fermer" class="btn-secondary" special="cancel"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_haccp_reassort" model="ir.actions.act_window">
+      <field name="name">Réassort</field>
+      <field name="res_model">haccp.reassort</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
+    </record>
+
     <!-- ===== Décongélation ===== -->
     <record id="view_haccp_decongelation_form" model="ir.ui.view">
       <field name="name">haccp.decongelation.form</field>
