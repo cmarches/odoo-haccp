@@ -59,12 +59,13 @@ class HaccpDlc(models.TransientModel):
     def _compute_dlc(self):
         today = date_cls.today()
         for rec in self:
-            duree = _DLC_TABLE.get((rec.famille, rec.condition), 0)
-            rec.duree_jours = duree
             if not rec.date_fabrication or not rec.famille or not rec.condition:
+                rec.duree_jours = 0
                 rec.date_limite = False
                 rec.statut = ''
                 continue
+            duree = _DLC_TABLE.get((rec.famille, rec.condition), 0)
+            rec.duree_jours = duree
             if duree == 0:
                 rec.date_limite = False
                 rec.statut = '⚠ Conservation non recommandée à cette température'

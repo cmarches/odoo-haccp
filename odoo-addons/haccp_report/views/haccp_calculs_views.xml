@@ -14,9 +14,9 @@
             <field name="date_fabrication"/>
           </group>
           <group string="Résultat">
-            <field name="duree_jours" readonly="1"/>
-            <field name="date_limite" readonly="1"/>
-            <field name="statut" readonly="1"/>
+            <field name="duree_jours" readonly="True"/>
+            <field name="date_limite" readonly="True"/>
+            <field name="statut" readonly="True"/>
           </group>
           <footer>
             <button string="Fermer" class="btn-secondary" special="cancel"/>
