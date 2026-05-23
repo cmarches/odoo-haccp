@@ -11,6 +11,8 @@
         'report/report_action.xml',
         'report/report_template.xml',
         'views/haccp_report_views.xml',
+        'views/haccp_calculs_views.xml',
+        'views/haccp_document_views.xml',
         'views/menu.xml',
         'views/quality_inherit.xml',
     ],

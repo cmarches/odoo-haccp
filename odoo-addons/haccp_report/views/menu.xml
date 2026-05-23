@@ -4,7 +4,7 @@
     <!-- Sous-menu Rapports dans l'app Qualité -->
     <menuitem
       id="menu_haccp_reports_root"
-      name="Rapports HACCP"
+      name="Méthode HACCP"
       parent="quality_control.menu_quality_root"
       groups="quality.group_quality_user"
       sequence="25"/>
