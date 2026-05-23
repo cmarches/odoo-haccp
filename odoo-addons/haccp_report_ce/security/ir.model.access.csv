@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_haccp_report_ce_user,haccp.report ce user,model_haccp_report,quality_control.group_quality_user,1,1,1,0
+access_haccp_report_ce_manager,haccp.report ce manager,model_haccp_report,quality_control.group_quality_manager,1,1,1,1
+access_haccp_dlc_ce_user,haccp.dlc ce user,model_haccp_dlc,quality_control.group_quality_user,1,1,1,1
+access_haccp_refroidissement_ce_user,haccp.refroidissement ce user,model_haccp_refroidissement,quality_control.group_quality_user,1,1,1,1
+access_haccp_dilution_ce_user,haccp.dilution ce user,model_haccp_dilution,quality_control.group_quality_user,1,1,1,1
+access_haccp_decongelation_ce_user,haccp.decongelation ce user,model_haccp_decongelation,quality_control.group_quality_user,1,1,1,1
+access_haccp_reassort_ce_user,haccp.reassort ce user,model_haccp_reassort,quality_control.group_quality_user,1,1,1,1
+access_haccp_document_ce_user,haccp.document ce user,model_haccp_document,quality_control.group_quality_user,1,0,0,0
+access_haccp_document_ce_manager,haccp.document ce manager,model_haccp_document,quality_control.group_quality_manager,1,1,1,1

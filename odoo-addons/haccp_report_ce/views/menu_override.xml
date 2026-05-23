@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data>
+    <menuitem
+      id="haccp_report.menu_haccp_reports_root"
+      parent="quality_control.menu_quality_root"
+      groups="quality_control.group_quality_user"/>
+  </data>
+</odoo>
