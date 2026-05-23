@@ -39,7 +39,7 @@
                 </div>
                 <div t-if="record.attachment_id.raw_value" class="mt-2">
                   <a t-attf-href="/web/content/#{record.attachment_id.raw_value}?download=true"
-                     class="btn btn-sm btn-primary" target="_blank">
+                     class="btn btn-sm btn-primary" role="button" target="_blank">
                     Télécharger
                   </a>
                 </div>
