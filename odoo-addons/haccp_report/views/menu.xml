@@ -6,7 +6,7 @@
       id="menu_haccp_reports_root"
       name="Méthode HACCP"
       parent="quality_control.menu_quality_root"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="25"/>
 
     <menuitem
@@ -14,7 +14,7 @@
       name="Rapports HACCP DDPP"
       parent="menu_haccp_reports_root"
       action="action_haccp_report"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="10"/>
 
     <!-- Groupe Calculs et formules -->
@@ -22,7 +22,7 @@
       id="menu_haccp_calculs_root"
       name="Calculs et formules"
       parent="menu_haccp_reports_root"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="20"/>
 
     <menuitem
@@ -30,7 +30,7 @@
       name="DLC / DLUO"
       parent="menu_haccp_calculs_root"
       action="action_haccp_dlc"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="10"/>
 
     <menuitem
@@ -38,7 +38,7 @@
       name="Refroidissement"
       parent="menu_haccp_calculs_root"
       action="action_haccp_refroidissement"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="20"/>
 
     <menuitem
@@ -46,7 +46,7 @@
       name="Réassort"
       parent="menu_haccp_calculs_root"
       action="action_haccp_reassort"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="50"/>
 
     <menuitem
@@ -54,7 +54,7 @@
       name="Décongélation"
       parent="menu_haccp_calculs_root"
       action="action_haccp_decongelation"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="40"/>
 
     <menuitem
@@ -62,7 +62,7 @@
       name="Dilution"
       parent="menu_haccp_calculs_root"
       action="action_haccp_dilution"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="30"/>
 
     <!-- Bibliothèque de documents -->
@@ -71,7 +71,7 @@
       name="Bibliothèque de documents"
       parent="menu_haccp_reports_root"
       action="action_haccp_document"
-      groups="quality.group_quality_user"
+      groups="haccp_report.group_haccp_user"
       sequence="30"/>
   </data>
 </odoo>
