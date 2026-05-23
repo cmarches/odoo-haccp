@@ -1,0 +1,131 @@
+{
+  "version": "2026-05-23",
+  "documents": [
+    {
+      "name": "fiche-temperatures-positives",
+      "category": "releves",
+      "description": "Traçabilité des températures frigos 0-5°C",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-fiche-temperatures-positives.pdf",
+      "hash": "805a600bb2a1d2f133ba52b733b2cf48"
+    },
+    {
+      "name": "fiche-temperatures-negatives",
+      "category": "releves",
+      "description": "Traçabilité des températures congélateurs -18°C",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-fiche-temperatures-negatives.pdf",
+      "hash": "f8cc7df846e202412a4ac91730a8b303"
+    },
+    {
+      "name": "registre-allergenes",
+      "category": "releves",
+      "description": "Déclaration et suivi des 14 allergènes majeurs",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-registre-allergenes.pdf",
+      "hash": "b175b0fb7acbc8bc333b51cb397720da"
+    },
+    {
+      "name": "affiche-lavage-mains",
+      "category": "affiches",
+      "description": "Protocole hygiène des mains en 7 étapes",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-affiche-lavage-mains.pdf",
+      "hash": "ff88bf3803894fa1e8ce832514670502"
+    },
+    {
+      "name": "affiche-planches-decoupe",
+      "category": "affiches",
+      "description": "Code couleur des planches selon la famille alimentaire",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-affiche-planches-decoupe.pdf",
+      "hash": "0bcc776ac81fd84095892885852527b6"
+    },
+    {
+      "name": "affiche-chaine-froid",
+      "category": "affiches",
+      "description": "Températures réglementaires de conservation par famille",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-affiche-chaine-froid.pdf",
+      "hash": "e5a3c45b8cc6d81e1b575969c8b4c50e"
+    },
+    {
+      "name": "affiche-tenue-hygiene",
+      "category": "affiches",
+      "description": "Équipements de protection individuelle obligatoires en cuisine",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-affiche-tenue-hygiene.pdf",
+      "hash": "b1f45d107a3aaf6dd781741dd5d209f0"
+    },
+    {
+      "name": "affiche-fiche-recette",
+      "category": "affiches",
+      "description": "Modèle de fiche recette avec allergènes et CCP",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-affiche-fiche-recette.pdf",
+      "hash": "0262614d35440164216685e6961fb825"
+    },
+    {
+      "name": "affiche-coupure-electrique",
+      "category": "affiches",
+      "description": "Procédure en cas de coupure de courant sur les équipements frigorifiques",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-affiche-coupure-electrique.pdf",
+      "hash": "e832efd6481a7b7a26e6ca95b9cfb319"
+    },
+    {
+      "name": "decret-0043-2024",
+      "category": "reglementation",
+      "description": "Décret relatif aux normes sanitaires en restauration collective",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-decret-0043-2024.pdf",
+      "hash": "7b1dd972bd2f6c585deab0365a4b2c5c"
+    },
+    {
+      "name": "reglement-ce-178-2002",
+      "category": "reglementation",
+      "description": "Principes généraux et exigences de la législation alimentaire",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-reglement-ce-178-2002.pdf",
+      "hash": "cdc265275a48ccfc832ff81627323cfa"
+    },
+    {
+      "name": "reglement-ce-852-2004",
+      "category": "reglementation",
+      "description": "Hygiène des denrées alimentaires — exigences HACCP",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-reglement-ce-852-2004.pdf",
+      "hash": "84fce3b29beec41ceeb195f4fa566226"
+    },
+    {
+      "name": "cerfa-12211-02",
+      "category": "reglementation",
+      "description": "Déclaration d'établissement auprès des services vétérinaires",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-cerfa-12211-02.pdf",
+      "hash": "c9958b350d99d1f82f1aa46ddeba4019"
+    },
+    {
+      "name": "hygiene-3",
+      "category": "fiches_pratiques",
+      "description": "Fiche pratique hygiène — nettoyage et désinfection",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-hygiene-3.pdf",
+      "hash": "9c9b811433f7f84818969d367a94e28e"
+    },
+    {
+      "name": "hygiene-4",
+      "category": "fiches_pratiques",
+      "description": "Fiche pratique hygiène — gestion des déchets",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-hygiene-4.pdf",
+      "hash": "b848c51657724c2e13b7e0682a9de5f7"
+    },
+    {
+      "name": "hygiene-5",
+      "category": "fiches_pratiques",
+      "description": "Fiche pratique hygiène — lutte contre les nuisibles",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-hygiene-5.pdf",
+      "hash": "cb607e310b9de1fc8d67dbadb77d5ccc"
+    },
+    {
+      "name": "plan-nettoyage",
+      "category": "fiches_pratiques",
+      "description": "Plan de nettoyage et désinfection hebdomadaire",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-plan-nettoyage.pdf",
+      "hash": "210d5cfe8796a11e094c06f440e56e2d"
+    },
+    {
+      "name": "plan-nettoyage-durable",
+      "category": "fiches_pratiques",
+      "description": "Plan de nettoyage éco-responsable avec produits certifiés",
+      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-plan-nettoyage-durable.pdf",
+      "hash": "c0d7850d6b51dfe4e3848412ae0cc27e"
+    }
+  ]
+}
