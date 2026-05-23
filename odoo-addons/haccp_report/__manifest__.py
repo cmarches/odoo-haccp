@@ -16,6 +16,9 @@
         'views/menu.xml',
         'views/quality_inherit.xml',
     ],
+    'demo': [
+        'demo/haccp_document_demo.xml',
+    ],
     'installable': True,
     'application': False,
     'license': 'OPL-1',

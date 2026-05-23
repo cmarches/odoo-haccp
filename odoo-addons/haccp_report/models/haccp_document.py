@@ -111,3 +111,87 @@ class HaccpDocument(models.Model):
                 'sticky': False,
             },
         }
+
+    @api.model
+    def action_load_demo_data(self):
+        if not self.env.user.has_group('quality.group_quality_manager'):
+            raise UserError(_('Cette action est réservée aux responsables qualité.'))
+
+        DEMO_DOCS = [
+            ('Fiche températures positives', 'releves',
+             'Traçabilité des températures frigos 0-5°C',
+             'https://aifluencedigital.com/haccp/documents/fiche-temperatures-positives.pdf'),
+            ('Fiche températures négatives', 'releves',
+             'Traçabilité des températures congélateurs -18°C',
+             'https://aifluencedigital.com/haccp/documents/fiche-temperatures-negatives.pdf'),
+            ('Registre allergènes', 'releves',
+             'Déclaration et suivi des 14 allergènes majeurs',
+             'https://aifluencedigital.com/haccp/documents/registre-allergenes.pdf'),
+            ('Lavage des mains', 'affiches',
+             'Protocole hygiène des mains en 7 étapes',
+             'https://aifluencedigital.com/haccp/documents/affiche-lavage-mains.pdf'),
+            ('Planches à découper', 'affiches',
+             'Code couleur des planches selon la famille alimentaire',
+             'https://aifluencedigital.com/haccp/documents/affiche-planches-decoupe.pdf'),
+            ('Chaîne du froid', 'affiches',
+             'Températures réglementaires de conservation par famille',
+             'https://aifluencedigital.com/haccp/documents/affiche-chaine-froid.pdf'),
+            ('Tenue d\'hygiène', 'affiches',
+             'Équipements de protection individuelle obligatoires en cuisine',
+             'https://aifluencedigital.com/haccp/documents/affiche-tenue-hygiene.pdf'),
+            ('Fiche recette', 'affiches',
+             'Modèle de fiche recette avec allergènes et CCP',
+             'https://aifluencedigital.com/haccp/documents/affiche-fiche-recette.pdf'),
+            ('Coupure électrique', 'affiches',
+             'Procédure en cas de coupure de courant sur les équipements frigorifiques',
+             'https://aifluencedigital.com/haccp/documents/affiche-coupure-electrique.pdf'),
+            ('Décret 0043 (02/2024)', 'reglementation',
+             'Décret relatif aux normes sanitaires en restauration collective',
+             'https://aifluencedigital.com/haccp/documents/decret-0043-2024.pdf'),
+            ('Règlement CE 178/2002', 'reglementation',
+             'Principes généraux et exigences de la législation alimentaire',
+             'https://aifluencedigital.com/haccp/documents/reglement-ce-178-2002.pdf'),
+            ('Règlement CE 852/2004', 'reglementation',
+             'Hygiène des denrées alimentaires — exigences HACCP',
+             'https://aifluencedigital.com/haccp/documents/reglement-ce-852-2004.pdf'),
+            ('Cerfa 12211-02', 'reglementation',
+             'Déclaration d\'établissement auprès des services vétérinaires',
+             'https://aifluencedigital.com/haccp/documents/cerfa-12211-02.pdf'),
+            ('METRO Hygiène n°3', 'fiches_pratiques',
+             'Fiche pratique hygiène METRO — nettoyage et désinfection',
+             'https://aifluencedigital.com/haccp/documents/metro-hygiene-3.pdf'),
+            ('METRO Hygiène n°4', 'fiches_pratiques',
+             'Fiche pratique hygiène METRO — gestion des déchets',
+             'https://aifluencedigital.com/haccp/documents/metro-hygiene-4.pdf'),
+            ('METRO Hygiène n°5', 'fiches_pratiques',
+             'Fiche pratique hygiène METRO — lutte contre les nuisibles',
+             'https://aifluencedigital.com/haccp/documents/metro-hygiene-5.pdf'),
+            ('METRO Plan nettoyage', 'fiches_pratiques',
+             'Plan de nettoyage et désinfection hebdomadaire',
+             'https://aifluencedigital.com/haccp/documents/metro-plan-nettoyage.pdf'),
+            ('METRO Plan nettoyage durable', 'fiches_pratiques',
+             'Plan de nettoyage éco-responsable avec produits certifiés',
+             'https://aifluencedigital.com/haccp/documents/metro-plan-nettoyage-durable.pdf'),
+        ]
+
+        created = 0
+        for name, category, description, source_url in DEMO_DOCS:
+            if not self.search([('name', '=', name)], limit=1):
+                self.create({
+                    'name': name,
+                    'category': category,
+                    'description': description,
+                    'source_url': source_url,
+                })
+                created += 1
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Données de démonstration'),
+                'message': _('%d document(s) chargé(s). Cliquez "Mettre à jour les documents" dès que le site est prêt.') % created,
+                'type': 'success' if created else 'warning',
+                'sticky': False,
+            },
+        }

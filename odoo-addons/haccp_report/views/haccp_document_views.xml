@@ -69,6 +69,16 @@
       </field>
     </record>
 
+    <!-- Action serveur : Charger données de démo -->
+    <record id="action_haccp_document_demo_server" model="ir.actions.server">
+      <field name="name">Charger données de démo</field>
+      <field name="model_id" ref="model_haccp_document"/>
+      <field name="binding_model_id" ref="model_haccp_document"/>
+      <field name="binding_view_types">list</field>
+      <field name="state">code</field>
+      <field name="code">action = env['haccp.document'].action_load_demo_data()</field>
+    </record>
+
     <!-- Action serveur : Mettre à jour les documents (managers uniquement) -->
     <record id="action_haccp_document_sync_server" model="ir.actions.server">
       <field name="name">Mettre à jour les documents</field>

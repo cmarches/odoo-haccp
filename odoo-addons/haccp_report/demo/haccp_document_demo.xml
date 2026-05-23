@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data>
+    <function model="haccp.document" name="action_load_demo_data"/>
+  </data>
+</odoo>
