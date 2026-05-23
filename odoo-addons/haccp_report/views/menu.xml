@@ -16,5 +16,21 @@
       action="action_haccp_report"
       groups="quality.group_quality_user"
       sequence="10"/>
+
+    <!-- Groupe Calculs et formules -->
+    <menuitem
+      id="menu_haccp_calculs_root"
+      name="Calculs et formules"
+      parent="menu_haccp_reports_root"
+      groups="quality.group_quality_user"
+      sequence="20"/>
+
+    <menuitem
+      id="menu_haccp_dlc"
+      name="DLC / DLUO"
+      parent="menu_haccp_calculs_root"
+      action="action_haccp_dlc"
+      groups="quality.group_quality_user"
+      sequence="10"/>
   </data>
 </odoo>

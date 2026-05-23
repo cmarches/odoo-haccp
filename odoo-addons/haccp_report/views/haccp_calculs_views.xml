@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
   <data>
-    <!-- Calculateurs HACCP — views et actions -->
+
+    <!-- ===== DLC / DLUO ===== -->
+    <record id="view_haccp_dlc_form" model="ir.ui.view">
+      <field name="name">haccp.dlc.form</field>
+      <field name="model">haccp.dlc</field>
+      <field name="arch" type="xml">
+        <form string="Calculateur DLC / DLUO">
+          <group string="Paramètres">
+            <field name="famille"/>
+            <field name="condition"/>
+            <field name="date_fabrication"/>
+          </group>
+          <group string="Résultat">
+            <field name="duree_jours" readonly="1"/>
+            <field name="date_limite" readonly="1"/>
+            <field name="statut" readonly="1"/>
+          </group>
+          <footer>
+            <button string="Fermer" class="btn-secondary" special="cancel"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_haccp_dlc" model="ir.actions.act_window">
+      <field name="name">DLC / DLUO</field>
+      <field name="res_model">haccp.dlc</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
+    </record>
+
   </data>
 </odoo>
