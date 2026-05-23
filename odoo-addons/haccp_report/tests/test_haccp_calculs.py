@@ -76,3 +76,38 @@ class TestHaccpRefroidissement(TransactionCase):
         debut = ofields.Datetime.now() - timedelta(minutes=130)
         rec = self.env['haccp.refroidissement'].create({'heure_debut': debut})
         self.assertEqual(rec.statut, '✗ FENÊTRE DÉPASSÉE')
+
+
+class TestHaccpDilution(TransactionCase):
+
+    def _make_dil(self, volume, ratio, ratio_custom=0):
+        return self.env['haccp.dilution'].create({
+            'volume_total': volume,
+            'ratio': ratio,
+            'ratio_custom': ratio_custom,
+        })
+
+    def test_ratio_1_10_produit(self):
+        rec = self._make_dil(1.0, '10')
+        self.assertAlmostEqual(rec.volume_produit_ml, 1000 / 11, places=1)
+
+    def test_ratio_1_10_eau(self):
+        rec = self._make_dil(1.0, '10')
+        self.assertAlmostEqual(rec.volume_eau_l, 1.0 - (1 / 11), places=3)
+
+    def test_ratio_1_100(self):
+        rec = self._make_dil(2.0, '100')
+        self.assertAlmostEqual(rec.volume_produit_ml, 2000 / 101, places=1)
+
+    def test_ratio_custom(self):
+        rec = self._make_dil(1.0, 'custom', ratio_custom=30)
+        self.assertAlmostEqual(rec.volume_produit_ml, 1000 / 31, places=1)
+
+    def test_volume_zero_retourne_zero(self):
+        rec = self._make_dil(0.0, '10')
+        self.assertEqual(rec.volume_produit_ml, 0.0)
+        self.assertEqual(rec.volume_eau_l, 0.0)
+
+    def test_ratio_custom_zero_retourne_zero(self):
+        rec = self._make_dil(1.0, 'custom', ratio_custom=0)
+        self.assertEqual(rec.volume_produit_ml, 0.0)

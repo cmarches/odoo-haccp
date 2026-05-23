@@ -60,5 +60,34 @@
       <field name="target">new</field>
     </record>
 
+    <!-- ===== Dilution produit nettoyant ===== -->
+    <record id="view_haccp_dilution_form" model="ir.ui.view">
+      <field name="name">haccp.dilution.form</field>
+      <field name="model">haccp.dilution</field>
+      <field name="arch" type="xml">
+        <form string="Convertisseur de dilution">
+          <group string="Paramètres">
+            <field name="volume_total"/>
+            <field name="ratio"/>
+            <field name="ratio_custom" invisible="ratio != 'custom'"/>
+          </group>
+          <group string="Résultat">
+            <field name="volume_produit_ml" readonly="True"/>
+            <field name="volume_eau_l" readonly="True"/>
+          </group>
+          <footer>
+            <button string="Fermer" class="btn-secondary" special="cancel"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_haccp_dilution" model="ir.actions.act_window">
+      <field name="name">Dilution</field>
+      <field name="res_model">haccp.dilution</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
+    </record>
+
   </data>
 </odoo>

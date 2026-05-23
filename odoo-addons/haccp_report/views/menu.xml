@@ -40,5 +40,13 @@
       action="action_haccp_refroidissement"
       groups="quality.group_quality_user"
       sequence="20"/>
+
+    <menuitem
+      id="menu_haccp_dilution"
+      name="Dilution"
+      parent="menu_haccp_calculs_root"
+      action="action_haccp_dilution"
+      groups="quality.group_quality_user"
+      sequence="30"/>
   </data>
 </odoo>
