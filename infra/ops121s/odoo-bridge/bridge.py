@@ -30,6 +30,7 @@ ODOO_DB    = os.environ.get("ODOO_DB",    "odoo19e_dev")
 ODOO_LOGIN = os.environ.get("ODOO_LOGIN", "cmarchesseau@aifluencedigital.com")
 ODOO_KEY   = os.environ.get("ODOO_KEY",   "")
 LISTEN_PORT = int(os.environ.get("BRIDGE_PORT", "5001"))
+QUALITY_BACKEND = os.environ.get("ODOO_QUALITY_BACKEND", "ee")  # ee | oca
 
 TWILIO_SID   = os.environ.get("TWILIO_ACCOUNT_SID", "")
 TWILIO_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
@@ -92,7 +93,7 @@ def _send_sms_twilio(msg: str):
         log.error("Erreur SMS Twilio: %s", e)
 
 
-def create_quality_check(qcp_id: int, value: float, tag: str):
+def _create_quality_check_ee(qcp_id: int, value: float, tag: str):
     uid, models = odoo_connect()
 
     check_id = models.execute_kw(
@@ -131,6 +132,53 @@ def create_quality_check(qcp_id: int, value: float, tag: str):
         send_sms(tag, value, tol_min, tol_max)
     else:
         log.info("OK — %s=%s → check #%s PASS", tag, value, check_id)
+
+    return check_id, result
+
+
+def create_quality_check(qcp_id: int, value: float, tag: str):
+    if QUALITY_BACKEND == "oca":
+        return _create_quality_check_oca(qcp_id, value, tag)
+    return _create_quality_check_ee(qcp_id, value, tag)
+
+
+def _create_quality_check_oca(qcp_id: int, value: float, tag: str):
+    uid, models = odoo_connect()
+
+    check_id = models.execute_kw(
+        ODOO_DB, uid, ODOO_KEY,
+        "quality.check", "create",
+        [{"point_id": qcp_id, "measure": value}],
+    )
+
+    point = models.execute_kw(
+        ODOO_DB, uid, ODOO_KEY,
+        "quality.point", "read",
+        [[qcp_id]], {"fields": ["tolerance_min", "tolerance_max"]},
+    )[0]
+    tol_min = point["tolerance_min"]
+    tol_max = point["tolerance_max"]
+
+    result = "pass" if tol_min <= value <= tol_max else "fail"
+
+    models.execute_kw(
+        ODOO_DB, uid, ODOO_KEY,
+        "quality.check", "write",
+        [[check_id], {"quality_state": result}],
+    )
+
+    if result == "fail":
+        models.execute_kw(
+            ODOO_DB, uid, ODOO_KEY,
+            "quality.alert", "create",
+            [{"name": f"[HACCP ALERTE] {tag} hors seuil: {value}"
+                      f" (tol [{tol_min}–{tol_max}])"}],
+        )
+        log.warning("ALERTE OCA — %s=%s hors seuil [%s–%s] → check #%s FAIL",
+                    tag, value, tol_min, tol_max, check_id)
+        send_sms(tag, value, tol_min, tol_max)
+    else:
+        log.info("OK OCA — %s=%s → check #%s PASS", tag, value, check_id)
 
     return check_id, result
 
