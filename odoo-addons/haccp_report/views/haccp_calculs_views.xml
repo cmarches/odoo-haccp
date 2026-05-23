@@ -32,5 +32,33 @@
       <field name="target">new</field>
     </record>
 
+    <!-- ===== Refroidissement rapide ===== -->
+    <record id="view_haccp_refroidissement_form" model="ir.ui.view">
+      <field name="name">haccp.refroidissement.form</field>
+      <field name="model">haccp.refroidissement</field>
+      <field name="arch" type="xml">
+        <form string="Minuteur de refroidissement HACCP">
+          <group string="Paramètres">
+            <field name="heure_debut"/>
+          </group>
+          <group string="Résultat (règle : +63°C → +10°C en &lt; 2h)">
+            <field name="heure_mi_parcours" readonly="True"/>
+            <field name="heure_limite" readonly="True"/>
+            <field name="statut" readonly="True"/>
+          </group>
+          <footer>
+            <button string="Fermer" class="btn-secondary" special="cancel"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_haccp_refroidissement" model="ir.actions.act_window">
+      <field name="name">Refroidissement</field>
+      <field name="res_model">haccp.refroidissement</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
+    </record>
+
   </data>
 </odoo>

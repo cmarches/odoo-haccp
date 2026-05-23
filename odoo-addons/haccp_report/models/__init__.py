@@ -1,3 +1,4 @@
 from . import haccp_report
 from . import report_renderer
 from . import haccp_dlc
+from . import haccp_refroidissement

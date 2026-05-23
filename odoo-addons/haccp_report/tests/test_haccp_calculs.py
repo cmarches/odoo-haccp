@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from odoo.tests.common import TransactionCase
+from odoo import fields as ofields
 
 
 class TestHaccpDlc(TransactionCase):
@@ -50,3 +51,28 @@ class TestHaccpDlc(TransactionCase):
     def test_statut_non_applicable_ambiant(self):
         rec = self._make_dlc('viande_crue', 'ambiant')
         self.assertIn('⚠', rec.statut)
+
+
+class TestHaccpRefroidissement(TransactionCase):
+
+    def test_heure_limite_plus_2h(self):
+        debut = ofields.Datetime.now()
+        rec = self.env['haccp.refroidissement'].create({'heure_debut': debut})
+        diff = rec.heure_limite - debut
+        self.assertAlmostEqual(diff.total_seconds(), 7200, delta=5)
+
+    def test_heure_mi_parcours_plus_1h(self):
+        debut = ofields.Datetime.now()
+        rec = self.env['haccp.refroidissement'].create({'heure_debut': debut})
+        diff = rec.heure_mi_parcours - debut
+        self.assertAlmostEqual(diff.total_seconds(), 3600, delta=5)
+
+    def test_statut_en_cours(self):
+        debut = ofields.Datetime.now() - timedelta(minutes=30)
+        rec = self.env['haccp.refroidissement'].create({'heure_debut': debut})
+        self.assertEqual(rec.statut, '⏳ EN COURS')
+
+    def test_statut_depasse(self):
+        debut = ofields.Datetime.now() - timedelta(minutes=130)
+        rec = self.env['haccp.refroidissement'].create({'heure_debut': debut})
+        self.assertEqual(rec.statut, '✗ FENÊTRE DÉPASSÉE')

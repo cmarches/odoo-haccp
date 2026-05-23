@@ -32,5 +32,13 @@
       action="action_haccp_dlc"
       groups="quality.group_quality_user"
       sequence="10"/>
+
+    <menuitem
+      id="menu_haccp_refroidissement"
+      name="Refroidissement"
+      parent="menu_haccp_calculs_root"
+      action="action_haccp_refroidissement"
+      groups="quality.group_quality_user"
+      sequence="20"/>
   </data>
 </odoo>
