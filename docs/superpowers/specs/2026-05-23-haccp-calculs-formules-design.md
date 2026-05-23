@@ -1,4 +1,4 @@
-# Design — Méthode HACCP : Calculs et formules
+# Design — Méthode HACCP : Calculs, formules et bibliothèque de documents
 
 **Date :** 2026-05-23
 **Module :** `haccp_report` (extension)
@@ -8,9 +8,12 @@
 
 ## Contexte
 
-Ajout de 5 calculateurs HACCP ponctuels dans le menu Odoo Qualité, sous un nouveau groupe "Calculs et formules". Les outils sont inspirés de methodehaccp.com. Pas de persistance des données — outils à usage immédiat uniquement.
+Extension du module `haccp_report` avec deux nouvelles fonctionnalités :
 
-Le menu "Rapports HACCP" est renommé en **"Méthode HACCP"** pour englober rapports et outils.
+1. **5 calculateurs HACCP ponctuels** sous "Calculs et formules" — outils à usage immédiat, sans persistance
+2. **Bibliothèque de documents HACCP** sous "Bibliothèque de documents" — PDFs aux couleurs AIFluence Digital, synchronisés depuis le site aifluencedigital.com
+
+Le menu racine "Rapports HACCP" est renommé en **"Méthode HACCP"** pour englober rapports, outils et documents.
 
 ---
 
@@ -18,25 +21,26 @@ Le menu "Rapports HACCP" est renommé en **"Méthode HACCP"** pour englober rapp
 
 ```
 Qualité
-  └── Méthode HACCP              ← renommé (était "Rapports HACCP")
-        ├── Rapports HACCP DDPP  ← inchangé (sequence 10)
-        └── Calculs et formules  ← nouveau (sequence 20)
-              ├── DLC / DLUO          (sequence 10)
-              ├── Refroidissement     (sequence 20)
-              ├── Dilution            (sequence 30)
-              ├── Décongélation       (sequence 40)
-              └── Réassort            (sequence 50)
+  └── Méthode HACCP                    ← renommé (était "Rapports HACCP")
+        ├── Rapports HACCP DDPP        ← inchangé (sequence 10)
+        ├── Calculs et formules        ← nouveau (sequence 20)
+        │     ├── DLC / DLUO          (sequence 10)
+        │     ├── Refroidissement     (sequence 20)
+        │     ├── Dilution            (sequence 30)
+        │     ├── Décongélation       (sequence 40)
+        │     └── Réassort            (sequence 50)
+        └── Bibliothèque de documents  ← nouveau (sequence 30)
 ```
-
-Chaque calculateur s'ouvre en **popup dialog** (`target='new'`). Résultats calculés en temps réel via `@api.depends`.
 
 ---
 
-## Architecture technique
+## PARTIE 1 — Calculs et formules
 
-**Pattern :** 5 `TransientModel` Odoo. Champs de résultat = champs calculés non stockés (`compute=` + `@api.depends`). Recalcul automatique à chaque saisie, sans bouton "Calculer". Aucune table persistante créée.
+### Architecture technique
 
-**Fichiers à créer/modifier :**
+**Pattern :** 5 `TransientModel` Odoo. Champs de résultat = champs calculés non stockés (`compute=` + `@api.depends`). Recalcul automatique à chaque saisie, sans bouton "Calculer". Aucune table persistante créée. Chaque calculateur s'ouvre en **popup dialog** (`target='new'`).
+
+**Fichiers :**
 
 ```
 haccp_report/
@@ -55,7 +59,7 @@ haccp_report/
 
 ---
 
-## Calculateur 1 — DLC / DLUO
+### Calculateur 1 — DLC / DLUO
 
 **Modèle :** `haccp.dlc`
 
@@ -84,7 +88,7 @@ haccp_report/
 
 ---
 
-## Calculateur 2 — Refroidissement rapide
+### Calculateur 2 — Refroidissement rapide
 
 **Modèle :** `haccp.refroidissement`
 
@@ -97,11 +101,11 @@ haccp_report/
 
 **Règle appliquée :** +63°C → +10°C en moins de 2 heures (règle HACCP standard).
 
-> Le statut indique si la fenêtre de 2h est encore ouverte. Il ne confirme pas l'atteinte des +10°C (mesure physique hors scope). Statut calculé à l'ouverture — pas de rafraîchissement automatique, l'utilisateur rouvre le wizard si besoin.
+> Le statut indique si la fenêtre de 2h est encore ouverte. Il ne confirme pas l'atteinte des +10°C (mesure physique hors scope). Statut calculé à l'ouverture — l'utilisateur rouvre le wizard si besoin.
 
 ---
 
-## Calculateur 3 — Dilution produit nettoyant
+### Calculateur 3 — Dilution produit nettoyant
 
 **Modèle :** `haccp.dilution`
 
@@ -119,7 +123,7 @@ haccp_report/
 
 ---
 
-## Calculateur 4 — Décongélation
+### Calculateur 4 — Décongélation
 
 **Modèle :** `haccp.decongelation`
 
@@ -130,7 +134,7 @@ haccp_report/
 | `debut_decongelation` | Datetime | Heure de mise en décongélation au réfrigérateur |
 | `duree_heures` | Float | **Calculé** — table famille × poids |
 | `fin_decongelation` | Datetime | **Calculé** — `début + duree_heures` |
-| `dlc_secondaire` | Date | **Calculé** — `fin_decongelation.date() + 24h` |
+| `dlc_secondaire` | Date | **Calculé** — `fin_decongelation.date() + 1 jour` |
 
 **Table de durées (heures/kg) :**
 
@@ -145,7 +149,7 @@ haccp_report/
 
 ---
 
-## Calculateur 5 — Point de réassort
+### Calculateur 5 — Point de réassort
 
 **Modèle :** `haccp.reassort`
 
@@ -161,15 +165,113 @@ haccp_report/
 
 ---
 
-## Sécurité et accès
+## PARTIE 2 — Bibliothèque de documents
 
-Même groupe que l'existant : `quality.group_quality_user`. Pas de règles d'accès supplémentaires (TransientModel, pas de données sensibles).
+### Concept
+
+AIFluence Digital est la **source de vérité** pour les documents HACCP (PDFs à la charte graphique). Odoo se synchronise à la demande via un bouton réservé aux managers. Les documents sont hébergés en cache local dans Odoo après synchronisation, téléchargeables par tous les utilisateurs HACCP.
+
+### Architecture technique
+
+**Modèle `haccp.document`** (modèle permanent) :
+
+| Champ | Type | Description |
+|---|---|---|
+| `name` | Char | Nom du document |
+| `category` | Selection | releves / affiches / reglementation / fiches_pratiques |
+| `description` | Text | Courte description |
+| `source_url` | Char | URL du PDF sur aifluencedigital.com |
+| `attachment_id` | Many2one `ir.attachment` | PDF en cache local dans Odoo |
+| `date_sync` | Datetime | Dernière synchronisation réussie |
+| `file_hash` | Char | Hash MD5 — détecte si le PDF a changé côté serveur |
+
+**Statut calculé (non stocké) :**
+- `✓ Téléchargé` — attachment présent (date_sync renseignée)
+- `⬇ Non téléchargé` — pas d'attachment
+
+> Le statut "mise à jour disponible" ne peut être connu qu'en fetchant le manifest. C'est le bouton sync qui détecte et applique les changements, puis affiche le rapport (X ajoutés, Y mis à jour, Z inchangés).
+
+### Manifest JSON (hébergé sur aifluencedigital.com)
+
+URL fixe : `https://aifluencedigital.com/haccp/manifest.json`
+
+```json
+{
+  "version": "2026-05-23",
+  "documents": [
+    {
+      "name": "Fiche températures positives",
+      "category": "releves",
+      "description": "Traçabilité des températures frigos 0-5°C",
+      "url": "https://aifluencedigital.com/haccp/documents/fiche-temperatures-positives.pdf",
+      "hash": "abc123..."
+    }
+  ]
+}
+```
+
+### Catalogue initial (18 documents)
+
+| Catégorie | Documents |
+|---|---|
+| **Relevés & traçabilité** | Fiche températures positives, Fiche températures négatives, Registre allergènes |
+| **Affiches de sensibilisation** | Lavage des mains, Planches à découper, Chaîne du froid, Tenue d'hygiène, Fiche recette, Coupure électrique |
+| **Réglementation** | Décret 0043 (02/2024), Règlement CE 178/2002, Règlement CE 852/2004, Cerfa 12211-02 |
+| **Fiches pratiques** | METRO Hygiène n°3, METRO Hygiène n°4, METRO Hygiène n°5, METRO Plan nettoyage, METRO Plan nettoyage durable |
+
+### Mécanisme de synchronisation
+
+Bouton "Mettre à jour les documents" (`group_quality_manager` uniquement) :
+
+1. Fetch `manifest.json` depuis aifluencedigital.com
+2. Pour chaque entrée du manifest :
+   - Si document absent dans Odoo → créer + télécharger PDF + stocker attachment
+   - Si hash différent → re-télécharger PDF + mettre à jour attachment + date_sync
+   - Si hash identique → ne rien faire
+3. Afficher un message de résultat : "X ajoutés, Y mis à jour, Z inchangés"
+
+### Vues
+
+**Vue liste** (défaut) — colonnes : Nom, Catégorie, Description, Date sync, Statut (badge coloré)
+
+**Vue kanban** — cartes groupées par catégorie, bouton "Télécharger" sur chaque carte
+
+**Droits d'accès :**
+- `group_quality_user` — lecture + téléchargement
+- `group_quality_manager` — lecture + téléchargement + synchronisation
+
+### Fichiers
+
+```
+haccp_report/
+├── models/
+│   ├── haccp_document.py          ← nouveau (modèle + méthode sync)
+│   └── __init__.py                ← ajouter import
+├── views/
+│   ├── haccp_document_views.xml   ← nouveau (list + kanban + form)
+│   └── menu.xml                   ← ajouter menu Bibliothèque (seq 30)
+├── security/
+│   └── ir.model.access.csv        ← ajouter droits haccp.document
+└── __manifest__.py                ← ajouter haccp_document_views.xml
+```
+
+---
+
+## Sécurité et accès (synthèse)
+
+| Fonctionnalité | group_quality_user | group_quality_manager |
+|---|---|---|
+| Calculateurs | Accès complet | Accès complet |
+| Bibliothèque — lecture/téléchargement | Oui | Oui |
+| Bibliothèque — synchronisation | Non | Oui |
 
 ---
 
 ## Hors scope
 
 - Persistance / historique des calculs
-- Export PDF des résultats
+- Export PDF des résultats de calcul
 - Compte à rebours live (JavaScript) pour le minuteur de refroidissement
 - Paramétrage des tables de durées depuis l'interface
+- Création / édition de documents depuis Odoo (source unique = aifluencedigital.com)
+- Synchronisation automatique planifiée (cron)
