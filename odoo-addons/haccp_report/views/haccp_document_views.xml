@@ -1,6 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
   <data>
-    <!-- Bibliothèque de documents HACCP -->
+
+    <!-- Vue liste -->
+    <record id="view_haccp_document_list" model="ir.ui.view">
+      <field name="name">haccp.document.list</field>
+      <field name="model">haccp.document</field>
+      <field name="arch" type="xml">
+        <list string="Bibliothèque de documents HACCP">
+          <field name="name"/>
+          <field name="category"/>
+          <field name="description"/>
+          <field name="date_sync"/>
+          <field name="statut"/>
+          <field name="attachment_id" string="Fichier"/>
+        </list>
+      </field>
+    </record>
+
+    <!-- Vue kanban -->
+    <record id="view_haccp_document_kanban" model="ir.ui.view">
+      <field name="name">haccp.document.kanban</field>
+      <field name="model">haccp.document</field>
+      <field name="arch" type="xml">
+        <kanban default_group_by="category">
+          <field name="name"/>
+          <field name="category"/>
+          <field name="description"/>
+          <field name="statut"/>
+          <field name="attachment_id"/>
+          <templates>
+            <t t-name="card">
+              <div class="oe_kanban_global_click">
+                <strong><field name="name"/></strong>
+                <div class="text-muted small"><field name="description"/></div>
+                <div class="mt-2">
+                  <span class="badge rounded-pill bg-info"><field name="statut"/></span>
+                </div>
+                <div t-if="record.attachment_id.raw_value" class="mt-2">
+                  <a t-attf-href="/web/content/#{record.attachment_id.raw_value}?download=true"
+                     class="btn btn-sm btn-primary" target="_blank">
+                    Télécharger
+                  </a>
+                </div>
+              </div>
+            </t>
+          </templates>
+        </kanban>
+      </field>
+    </record>
+
+    <!-- Vue form (lecture seule pour users) -->
+    <record id="view_haccp_document_form" model="ir.ui.view">
+      <field name="name">haccp.document.form</field>
+      <field name="model">haccp.document</field>
+      <field name="arch" type="xml">
+        <form string="Document HACCP">
+          <group>
+            <field name="name"/>
+            <field name="category"/>
+            <field name="description"/>
+            <field name="source_url"/>
+            <field name="attachment_id"/>
+            <field name="date_sync" readonly="True"/>
+            <field name="statut" readonly="True"/>
+          </group>
+        </form>
+      </field>
+    </record>
+
+    <!-- Action serveur : Mettre à jour les documents (managers uniquement) -->
+    <record id="action_haccp_document_sync_server" model="ir.actions.server">
+      <field name="name">Mettre à jour les documents</field>
+      <field name="model_id" ref="model_haccp_document"/>
+      <field name="binding_model_id" ref="model_haccp_document"/>
+      <field name="binding_view_types">list</field>
+      <field name="state">code</field>
+      <field name="code">action = env['haccp.document'].action_sync_documents()</field>
+    </record>
+
+    <!-- Action principale (list + kanban) -->
+    <record id="action_haccp_document" model="ir.actions.act_window">
+      <field name="name">Bibliothèque de documents</field>
+      <field name="res_model">haccp.document</field>
+      <field name="view_mode">list,kanban,form</field>
+    </record>
+
   </data>
 </odoo>

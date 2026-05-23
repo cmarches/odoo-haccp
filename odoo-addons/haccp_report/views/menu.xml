@@ -64,5 +64,14 @@
       action="action_haccp_dilution"
       groups="quality.group_quality_user"
       sequence="30"/>
+
+    <!-- Bibliothèque de documents -->
+    <menuitem
+      id="menu_haccp_documents"
+      name="Bibliothèque de documents"
+      parent="menu_haccp_reports_root"
+      action="action_haccp_document"
+      groups="quality.group_quality_user"
+      sequence="30"/>
   </data>
 </odoo>
