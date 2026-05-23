@@ -6,7 +6,6 @@
     'author': 'AIFluence Digital',
     'depends': ['quality_control', 'web', 'mail'],
     'data': [
-        'security/haccp_groups.xml',
         'security/ir.model.access.csv',
         'report/report_action.xml',
         'report/report_template.xml',
