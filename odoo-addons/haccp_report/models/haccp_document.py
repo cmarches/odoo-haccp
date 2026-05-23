@@ -39,6 +39,8 @@ class HaccpDocument(models.Model):
 
     @api.model
     def action_sync_documents(self):
+        if not self.env.user.has_group('quality.group_quality_manager'):
+            raise UserError(_('Cette action est réservée aux responsables qualité.'))
         try:
             resp = requests.get(MANIFEST_URL, timeout=10)
             resp.raise_for_status()
