@@ -60,6 +60,36 @@
       <field name="target">new</field>
     </record>
 
+    <!-- ===== Décongélation ===== -->
+    <record id="view_haccp_decongelation_form" model="ir.ui.view">
+      <field name="name">haccp.decongelation.form</field>
+      <field name="model">haccp.decongelation</field>
+      <field name="arch" type="xml">
+        <form string="Calculateur de décongélation">
+          <group string="Paramètres">
+            <field name="famille"/>
+            <field name="poids_kg"/>
+            <field name="debut_decongelation"/>
+          </group>
+          <group string="Résultat (décongélation au réfrigérateur +4°C)">
+            <field name="duree_heures" readonly="True"/>
+            <field name="fin_decongelation" readonly="True"/>
+            <field name="dlc_secondaire" readonly="True"/>
+          </group>
+          <footer>
+            <button string="Fermer" class="btn-secondary" special="cancel"/>
+          </footer>
+        </form>
+      </field>
+    </record>
+
+    <record id="action_haccp_decongelation" model="ir.actions.act_window">
+      <field name="name">Décongélation</field>
+      <field name="res_model">haccp.decongelation</field>
+      <field name="view_mode">form</field>
+      <field name="target">new</field>
+    </record>
+
     <!-- ===== Dilution produit nettoyant ===== -->
     <record id="view_haccp_dilution_form" model="ir.ui.view">
       <field name="name">haccp.dilution.form</field>

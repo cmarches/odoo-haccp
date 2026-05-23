@@ -4,3 +4,4 @@ access_haccp_report_manager,haccp.report manager,model_haccp_report,quality.grou
 access_haccp_dlc_user,haccp.dlc user,model_haccp_dlc,quality.group_quality_user,1,1,1,1
 access_haccp_refroidissement_user,haccp.refroidissement user,model_haccp_refroidissement,quality.group_quality_user,1,1,1,1
 access_haccp_dilution_user,haccp.dilution user,model_haccp_dilution,quality.group_quality_user,1,1,1,1
+access_haccp_decongelation_user,haccp.decongelation user,model_haccp_decongelation,quality.group_quality_user,1,1,1,1

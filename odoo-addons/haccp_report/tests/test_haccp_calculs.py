@@ -111,3 +111,45 @@ class TestHaccpDilution(TransactionCase):
     def test_ratio_custom_zero_retourne_zero(self):
         rec = self._make_dil(1.0, 'custom', ratio_custom=0)
         self.assertEqual(rec.volume_produit_ml, 0.0)
+
+
+class TestHaccpDecongelation(TransactionCase):
+
+    def _make_dec(self, famille, poids, debut=None):
+        return self.env['haccp.decongelation'].create({
+            'famille': famille,
+            'poids_kg': poids,
+            'debut_decongelation': debut or ofields.Datetime.now(),
+        })
+
+    def test_duree_viande_entiere_2kg(self):
+        rec = self._make_dec('viande_entiere', 2.0)
+        self.assertAlmostEqual(rec.duree_heures, 48.0, places=1)
+
+    def test_duree_poisson_1kg(self):
+        rec = self._make_dec('poisson', 1.0)
+        self.assertAlmostEqual(rec.duree_heures, 12.0, places=1)
+
+    def test_duree_minimum_2h(self):
+        rec = self._make_dec('viande_hachee', 0.1)
+        self.assertEqual(rec.duree_heures, 2.0)
+
+    def test_fin_decongelation_calculee(self):
+        debut = ofields.Datetime.now()
+        rec = self.env['haccp.decongelation'].create({
+            'famille': 'volaille',
+            'poids_kg': 1.0,
+            'debut_decongelation': debut,
+        })
+        diff = rec.fin_decongelation - debut
+        self.assertAlmostEqual(diff.total_seconds(), 20 * 3600, delta=60)
+
+    def test_dlc_secondaire_j_plus_1(self):
+        debut = ofields.Datetime.now()
+        rec = self.env['haccp.decongelation'].create({
+            'famille': 'poisson',
+            'poids_kg': 1.0,
+            'debut_decongelation': debut,
+        })
+        expected = (debut + timedelta(hours=12)).date() + timedelta(days=1)
+        self.assertEqual(rec.dlc_secondaire, expected)

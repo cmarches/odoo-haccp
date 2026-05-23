@@ -42,6 +42,14 @@
       sequence="20"/>
 
     <menuitem
+      id="menu_haccp_decongelation"
+      name="Décongélation"
+      parent="menu_haccp_calculs_root"
+      action="action_haccp_decongelation"
+      groups="quality.group_quality_user"
+      sequence="40"/>
+
+    <menuitem
       id="menu_haccp_dilution"
       name="Dilution"
       parent="menu_haccp_calculs_root"
