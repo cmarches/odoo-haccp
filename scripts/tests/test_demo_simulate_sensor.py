@@ -1,5 +1,6 @@
 import importlib.util
 import io
+import os
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -44,6 +45,25 @@ class TestBuildUplinkBody(unittest.TestCase):
         )
         self.assertEqual(body["uplink_message"]["decoded_payload"], {"temperature_1": 12.0})
         self.assertEqual(body["uplink_message"]["f_port"], 1)
+
+
+class TestMainMissingApiKey(unittest.TestCase):
+    @patch.dict(os.environ, {}, clear=True)
+    def test_exits_1_without_api_key(self):
+        stderr = io.StringIO()
+        with patch("sys.stderr", stderr):
+            code = demo.main(["--device", "lht65-frigo-positif", "--value", "12.0"])
+        self.assertEqual(code, 1)
+        self.assertIn("TTN_API_KEY", stderr.getvalue())
+
+
+class TestMainMissingArgs(unittest.TestCase):
+    @patch.dict(os.environ, {"TTN_API_KEY": "fake-key"}, clear=True)
+    def test_exits_1_without_device_or_value(self):
+        stderr = io.StringIO()
+        with patch("sys.stderr", stderr):
+            code = demo.main([])
+        self.assertEqual(code, 1)
 
 
 if __name__ == "__main__":

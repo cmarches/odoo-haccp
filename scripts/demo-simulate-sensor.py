@@ -79,8 +79,26 @@ def main(argv=None):
         print_list_devices()
         return 0
 
-    print("ERREUR : --device et --value sont requis (ou utiliser --list-devices)", file=sys.stderr)
-    return 1
+    if not args.device or args.value is None:
+        print(
+            "ERREUR : --device et --value sont requis (ou utiliser --list-devices)",
+            file=sys.stderr,
+        )
+        return 1
+
+    api_key = os.environ.get("TTN_API_KEY")
+    if not api_key:
+        print(
+            "ERREUR : variable d'environnement TTN_API_KEY manquante.\n"
+            "Génère une clé dans la console TTN : Application -> API keys -> "
+            'droit "Write application traffic (uplink and downlink)", puis :\n'
+            "  export TTN_API_KEY=...",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(f"Envoi d'un uplink simulé — device={args.device} {args.field}={args.value}")
+    return 0
 
 
 if __name__ == "__main__":
