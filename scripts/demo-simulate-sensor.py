@@ -33,6 +33,19 @@ def build_simulate_url(region, app_id, device_id):
     )
 
 
+def build_uplink_body(device_id, app_id, field, value):
+    return {
+        "end_device_ids": {
+            "device_id": device_id,
+            "application_ids": {"application_id": app_id},
+        },
+        "uplink_message": {
+            "f_port": 1,
+            "decoded_payload": {field: value},
+        },
+    }
+
+
 def print_list_devices():
     print("Devices connus :")
     for device_id, info in KNOWN_DEVICES.items():
