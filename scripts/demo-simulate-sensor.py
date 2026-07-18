@@ -5,6 +5,7 @@ complet en démo : TTN -> MQTT -> vNode -> bridge -> Odoo -> SMS.
 
 Usage:
   python3 demo-simulate-sensor.py --device lht65-frigo-positif --value 12.0
+  python3 demo-simulate-sensor.py --device lht65-stockage-sec --value 90.0 --field humidity
   python3 demo-simulate-sensor.py --list-devices
 
 Variables d'environnement :
@@ -74,13 +75,27 @@ def parse_args(argv):
     parser.add_argument("--device", help="device_id TTN (ex: lht65-frigo-positif)")
     parser.add_argument("--value", type=float, help="Valeur à injecter")
     parser.add_argument(
-        "--field", default="temperature_1", choices=["temperature_1", "humidity"]
+        "--field",
+        default="temperature_1",
+        choices=["temperature_1", "humidity"],
+        help="Champ du decoded_payload à injecter (défaut: temperature_1)",
     )
     parser.add_argument(
-        "--app-id", dest="app_id", default=os.environ.get("TTN_APP_ID", "haccp-restaurant-poc")
+        "--app-id",
+        dest="app_id",
+        default=os.environ.get("TTN_APP_ID", "haccp-restaurant-poc"),
+        help="Application ID TTN (défaut: variable TTN_APP_ID ou haccp-restaurant-poc)",
     )
-    parser.add_argument("--region", default=os.environ.get("TTN_REGION", "eu1"))
-    parser.add_argument("--list-devices", action="store_true")
+    parser.add_argument(
+        "--region",
+        default=os.environ.get("TTN_REGION", "eu1"),
+        help="Région TTN (défaut: variable TTN_REGION ou eu1)",
+    )
+    parser.add_argument(
+        "--list-devices",
+        action="store_true",
+        help="Affiche les devices connus avec leurs seuils et quitte",
+    )
     return parser.parse_args(argv)
 
 

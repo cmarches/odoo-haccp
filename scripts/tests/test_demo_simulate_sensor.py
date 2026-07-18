@@ -131,7 +131,7 @@ class TestMainHttpError(unittest.TestCase):
     def test_http_error_prints_details_and_returns_1(self, mock_send):
         mock_send.return_value = (403, '{"error": "permission_denied"}')
         stderr = io.StringIO()
-        with patch("sys.stderr", stderr):
+        with patch("sys.stderr", stderr), patch("sys.stdout", io.StringIO()):
             code = demo.main(["--device", "lht65-frigo-positif", "--value", "12.0"])
         self.assertEqual(code, 1)
         output = stderr.getvalue()
@@ -145,7 +145,7 @@ class TestMainNetworkError(unittest.TestCase):
     def test_network_error_prints_message_and_returns_1(self, mock_send):
         mock_send.side_effect = urllib.error.URLError("timed out")
         stderr = io.StringIO()
-        with patch("sys.stderr", stderr):
+        with patch("sys.stderr", stderr), patch("sys.stdout", io.StringIO()):
             code = demo.main(["--device", "lht65-frigo-positif", "--value", "12.0"])
         self.assertEqual(code, 1)
         self.assertIn("ERREUR réseau", stderr.getvalue())
