@@ -46,6 +46,18 @@ def build_uplink_body(device_id, app_id, field, value):
     }
 
 
+def send_simulated_uplink(url, api_key, body, timeout=10):
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(url, data=data, method="POST")
+    req.add_header("Authorization", f"Bearer {api_key}")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.status, resp.read().decode("utf-8")
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode("utf-8")
+
+
 def print_list_devices():
     print("Devices connus :")
     for device_id, info in KNOWN_DEVICES.items():
