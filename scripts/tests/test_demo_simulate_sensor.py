@@ -110,5 +110,46 @@ class TestSendSimulatedUplink(unittest.TestCase):
         self.assertEqual(body, '{"error": "permission_denied"}')
 
 
+class TestMainSuccess(unittest.TestCase):
+    @patch.dict(os.environ, {"TTN_API_KEY": "fake-key"}, clear=True)
+    @patch.object(demo, "send_simulated_uplink")
+    def test_success_prints_confirmation_and_returns_0(self, mock_send):
+        mock_send.return_value = (200, '{"ok": true}')
+        stdout = io.StringIO()
+        with patch("sys.stdout", stdout):
+            code = demo.main(["--device", "lht65-frigo-positif", "--value", "12.0"])
+        self.assertEqual(code, 0)
+        output = stdout.getvalue()
+        self.assertIn("HTTP 200", output)
+        self.assertIn("Odoo", output)
+        mock_send.assert_called_once()
+
+
+class TestMainHttpError(unittest.TestCase):
+    @patch.dict(os.environ, {"TTN_API_KEY": "fake-key"}, clear=True)
+    @patch.object(demo, "send_simulated_uplink")
+    def test_http_error_prints_details_and_returns_1(self, mock_send):
+        mock_send.return_value = (403, '{"error": "permission_denied"}')
+        stderr = io.StringIO()
+        with patch("sys.stderr", stderr):
+            code = demo.main(["--device", "lht65-frigo-positif", "--value", "12.0"])
+        self.assertEqual(code, 1)
+        output = stderr.getvalue()
+        self.assertIn("403", output)
+        self.assertIn("permission_denied", output)
+
+
+class TestMainNetworkError(unittest.TestCase):
+    @patch.dict(os.environ, {"TTN_API_KEY": "fake-key"}, clear=True)
+    @patch.object(demo, "send_simulated_uplink")
+    def test_network_error_prints_message_and_returns_1(self, mock_send):
+        mock_send.side_effect = urllib.error.URLError("timed out")
+        stderr = io.StringIO()
+        with patch("sys.stderr", stderr):
+            code = demo.main(["--device", "lht65-frigo-positif", "--value", "12.0"])
+        self.assertEqual(code, 1)
+        self.assertIn("ERREUR réseau", stderr.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()

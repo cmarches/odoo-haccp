@@ -110,6 +110,24 @@ def main(argv=None):
         return 1
 
     print(f"Envoi d'un uplink simulé — device={args.device} {args.field}={args.value}")
+    url = build_simulate_url(args.region, args.app_id, args.device)
+    body = build_uplink_body(args.device, args.app_id, args.field, args.value)
+    print(f"POST {url}")
+
+    try:
+        status, resp_text = send_simulated_uplink(url, api_key, body)
+    except urllib.error.URLError as e:
+        print(f"ERREUR réseau : {e}", file=sys.stderr)
+        return 1
+
+    if status >= 400:
+        print(f"ERREUR TTN — HTTP {status}\n{resp_text}", file=sys.stderr)
+        return 1
+
+    print(f"OK — TTN a accepté l'uplink simulé (HTTP {status})")
+    print("Observe maintenant en direct :")
+    print("  - Odoo (quality.check / quality.alert) sur http://192.168.1.182:8029")
+    print("  - Le téléphone configuré pour les SMS d'alerte")
     return 0
 
 
