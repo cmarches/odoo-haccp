@@ -22,5 +22,15 @@ class TestListDevices(unittest.TestCase):
         self.assertIn("lht65-stockage-sec", output)
 
 
+class TestBuildSimulateUrl(unittest.TestCase):
+    def test_builds_correct_url(self):
+        url = demo.build_simulate_url("eu1", "haccp-restaurant-poc", "lht65-frigo-positif")
+        self.assertEqual(
+            url,
+            "https://eu1.cloud.thethings.network/api/v3/as/applications/"
+            "haccp-restaurant-poc/devices/lht65-frigo-positif/up/simulate",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

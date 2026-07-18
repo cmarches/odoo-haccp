@@ -26,6 +26,13 @@ KNOWN_DEVICES = {
 }
 
 
+def build_simulate_url(region, app_id, device_id):
+    return (
+        f"https://{region}.cloud.thethings.network/api/v3/as/applications/"
+        f"{app_id}/devices/{device_id}/up/simulate"
+    )
+
+
 def print_list_devices():
     print("Devices connus :")
     for device_id, info in KNOWN_DEVICES.items():
