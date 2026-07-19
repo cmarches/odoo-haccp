@@ -14,11 +14,16 @@ Variables d'environnement :
   TTN_REGION    (optionnel, défaut "eu1")
 """
 import argparse
+import base64
 import json
 import os
 import sys
 import urllib.error
 import urllib.request
+
+DEFAULT_TEMPERATURE = 4.0
+DEFAULT_HUMIDITY = 50.0
+DEFAULT_BATTERY_VOLTAGE = 3.6
 
 KNOWN_DEVICES = {
     "lht65-frigo-positif": {"field": "temperature_1", "seuil": "<= 4°C", "valeur_demo": 12.0},
@@ -34,7 +39,35 @@ def build_simulate_url(region, app_id, device_id):
     )
 
 
+def encode_lht65_frm_payload(temperature_1=None, humidity=None, battery_voltage=None):
+    """Encode 6 bytes décodés par le formatter uplink TTN du device
+    lht65-frigo-positif : [0-1] battery_voltage (mV, 14 bits) [2-3]
+    temperature_1*100 (int16 signé) [4-5] humidity*10 (uint16). Le formatter
+    ignore tout octet au-delà de l'index 5 (évite le crash du décodeur
+    officiel sur les bytes du capteur externe)."""
+    if temperature_1 is None:
+        temperature_1 = DEFAULT_TEMPERATURE
+    if humidity is None:
+        humidity = DEFAULT_HUMIDITY
+    if battery_voltage is None:
+        battery_voltage = DEFAULT_BATTERY_VOLTAGE
+
+    battery_raw = int(round(battery_voltage * 1000)) & 0x3FFF
+    temp_raw = int(round(temperature_1 * 100))
+    if temp_raw < 0:
+        temp_raw += 0x10000
+    humidity_raw = int(round(humidity * 10))
+
+    payload = bytes([
+        (battery_raw >> 8) & 0xFF, battery_raw & 0xFF,
+        (temp_raw >> 8) & 0xFF, temp_raw & 0xFF,
+        (humidity_raw >> 8) & 0xFF, humidity_raw & 0xFF,
+    ])
+    return base64.b64encode(payload).decode("ascii")
+
+
 def build_uplink_body(device_id, app_id, field, value):
+    frm_payload = encode_lht65_frm_payload(**{field: value})
     return {
         "end_device_ids": {
             "device_id": device_id,
@@ -42,7 +75,7 @@ def build_uplink_body(device_id, app_id, field, value):
         },
         "uplink_message": {
             "f_port": 1,
-            "decoded_payload": {field: value},
+            "frm_payload": frm_payload,
             # Requis par la validation TTN (uplink_message.settings) : EU868
             # SF7BW125, valeurs par défaut LoRaWAN standard pour ce simulateur.
             "settings": {

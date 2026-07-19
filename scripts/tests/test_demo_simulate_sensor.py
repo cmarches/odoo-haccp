@@ -1,3 +1,4 @@
+import base64
 import importlib.util
 import io
 import os
@@ -34,6 +35,32 @@ class TestBuildSimulateUrl(unittest.TestCase):
         )
 
 
+class TestEncodeLht65FrmPayload(unittest.TestCase):
+    # Le formatter uplink TTN (device lht65-frigo-positif) décode ces 6 bytes :
+    # [0-1] battery_voltage (mV, masqué 14 bits) [2-3] temperature_1*100 (int16
+    # signé) [4-5] humidity*10 (uint16). Tout octet au-delà est ignoré (c'est
+    # ce qui évite le crash du décodeur officiel sur les bytes du capteur
+    # externe).
+    def test_encodes_temperature_humidity_battery_into_6_bytes(self):
+        frm_payload = demo.encode_lht65_frm_payload(
+            temperature_1=12.0, humidity=50.0, battery_voltage=3.6
+        )
+        raw = base64.b64decode(frm_payload)
+        self.assertEqual(raw, bytes([0x0E, 0x10, 0x04, 0xB0, 0x01, 0xF4]))
+
+    def test_encodes_negative_temperature_as_twos_complement(self):
+        frm_payload = demo.encode_lht65_frm_payload(
+            temperature_1=-15.0, humidity=50.0, battery_voltage=3.6
+        )
+        raw = base64.b64decode(frm_payload)
+        self.assertEqual(raw[2:4], bytes([0xFA, 0x24]))
+
+    def test_uses_defaults_for_unspecified_fields(self):
+        frm_payload = demo.encode_lht65_frm_payload(temperature_1=4.0)
+        raw = base64.b64decode(frm_payload)
+        self.assertEqual(len(raw), 6)
+
+
 class TestBuildUplinkBody(unittest.TestCase):
     def test_builds_correct_body(self):
         body = demo.build_uplink_body(
@@ -44,8 +71,10 @@ class TestBuildUplinkBody(unittest.TestCase):
             body["end_device_ids"]["application_ids"]["application_id"],
             "haccp-restaurant-poc",
         )
-        self.assertEqual(body["uplink_message"]["decoded_payload"], {"temperature_1": 12.0})
         self.assertEqual(body["uplink_message"]["f_port"], 1)
+        raw = base64.b64decode(body["uplink_message"]["frm_payload"])
+        self.assertEqual(len(raw), 6)
+        self.assertEqual(raw[2:4], bytes([0x04, 0xB0]))  # 12.00°C
 
     def test_includes_required_settings_for_ttn_validation(self):
         # L'API TTN /up/simulate rejette la requête (HTTP 400) si
