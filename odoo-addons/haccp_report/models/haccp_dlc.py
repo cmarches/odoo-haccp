@@ -1,50 +1,14 @@
 from datetime import date as date_cls, timedelta
 from odoo import models, fields, api
-
-_DLC_TABLE = {
-    ('viande_crue', 'refrigere'): 3,
-    ('viande_crue', 'congele'): 90,
-    ('viande_crue', 'ambiant'): 0,
-    ('poisson', 'refrigere'): 2,
-    ('poisson', 'congele'): 90,
-    ('poisson', 'ambiant'): 0,
-    ('charcuterie', 'refrigere'): 5,
-    ('charcuterie', 'congele'): 90,
-    ('charcuterie', 'ambiant'): 30,
-    ('laitier', 'refrigere'): 7,
-    ('laitier', 'congele'): 30,
-    ('laitier', 'ambiant'): 0,
-    ('plat_cuisine', 'refrigere'): 3,
-    ('plat_cuisine', 'congele'): 90,
-    ('plat_cuisine', 'ambiant'): 0,
-    ('legumes', 'refrigere'): 5,
-    ('legumes', 'congele'): 180,
-    ('legumes', 'ambiant'): 7,
-    ('autre', 'refrigere'): 3,
-    ('autre', 'congele'): 90,
-    ('autre', 'ambiant'): 7,
-}
+from .haccp_dlc_table import DLC_TABLE, DLC_FAMILLE_SELECTION, DLC_CONDITION_SELECTION
 
 
 class HaccpDlc(models.TransientModel):
     _name = 'haccp.dlc'
     _description = 'Calculateur DLC / DLUO'
 
-    famille = fields.Selection([
-        ('viande_crue', 'Viande crue'),
-        ('poisson', 'Poisson'),
-        ('charcuterie', 'Charcuterie'),
-        ('laitier', 'Produit laitier'),
-        ('plat_cuisine', 'Plat cuisiné'),
-        ('legumes', 'Légumes'),
-        ('autre', 'Autre'),
-    ], string='Famille', required=True)
-
-    condition = fields.Selection([
-        ('refrigere', 'Réfrigéré (+4°C)'),
-        ('congele', 'Congelé (-18°C)'),
-        ('ambiant', 'Ambiant'),
-    ], string='Condition de conservation', required=True)
+    famille = fields.Selection(DLC_FAMILLE_SELECTION, string='Famille', required=True)
+    condition = fields.Selection(DLC_CONDITION_SELECTION, string='Condition de conservation', required=True)
 
     date_fabrication = fields.Date(
         string='Date de fabrication / ouverture', required=True,
@@ -64,7 +28,7 @@ class HaccpDlc(models.TransientModel):
                 rec.date_limite = False
                 rec.statut = ''
                 continue
-            duree = _DLC_TABLE.get((rec.famille, rec.condition), 0)
+            duree = DLC_TABLE.get((rec.famille, rec.condition), 0)
             rec.duree_jours = duree
             if duree == 0:
                 rec.date_limite = False
