@@ -14,6 +14,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# Brainstorming visuel (superpowers)
+.superpowers/
+
 # Données runtime vNode
 infra/ops121s/vnode/data/*
 !infra/ops121s/vnode/data/.gitkeep
