@@ -43,6 +43,17 @@ def build_uplink_body(device_id, app_id, field, value):
         "uplink_message": {
             "f_port": 1,
             "decoded_payload": {field: value},
+            # Requis par la validation TTN (uplink_message.settings) : EU868
+            # SF7BW125, valeurs par défaut LoRaWAN standard pour ce simulateur.
+            "settings": {
+                "data_rate": {
+                    "lora": {
+                        "bandwidth": 125000,
+                        "spreading_factor": 7,
+                    },
+                },
+                "frequency": "868100000",
+            },
         },
     }
 

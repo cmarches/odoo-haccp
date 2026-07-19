@@ -47,6 +47,17 @@ class TestBuildUplinkBody(unittest.TestCase):
         self.assertEqual(body["uplink_message"]["decoded_payload"], {"temperature_1": 12.0})
         self.assertEqual(body["uplink_message"]["f_port"], 1)
 
+    def test_includes_required_settings_for_ttn_validation(self):
+        # L'API TTN /up/simulate rejette la requête (HTTP 400) si
+        # uplink_message.settings est absent : "value is required".
+        body = demo.build_uplink_body(
+            "lht65-frigo-positif", "haccp-restaurant-poc", "temperature_1", 12.0
+        )
+        settings = body["uplink_message"]["settings"]
+        self.assertEqual(settings["data_rate"]["lora"]["bandwidth"], 125000)
+        self.assertEqual(settings["data_rate"]["lora"]["spreading_factor"], 7)
+        self.assertEqual(settings["frequency"], "868100000")
+
 
 class TestMainMissingApiKey(unittest.TestCase):
     @patch.dict(os.environ, {}, clear=True)
