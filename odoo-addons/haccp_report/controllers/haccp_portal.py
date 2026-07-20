@@ -149,8 +149,9 @@ class HaccpPortalController(http.Controller):
         '/haccp/etiquette/<int:ouverture_id>/<string:access_token>/cloturer',
         type='http', auth='user', methods=['POST'], csrf=True,
     )
-    def haccp_etiquette_cloturer(self, ouverture_id, access_token, statut, **post):
+    def haccp_etiquette_cloturer(self, ouverture_id, access_token, statut=None, **post):
         self._check_kitchen_group()
         record = self._get_record_or_404(ouverture_id, access_token)
-        record.action_cloturer(statut)
-        return request.redirect('/haccp/etiquette/%s/%s' % (ouverture_id, access_token))
+        if statut in ('termine', 'jete'):
+            record.action_cloturer(statut)
+        return request.redirect(record.access_url)
