@@ -135,4 +135,17 @@
       </body>
     </html>
   </template>
+
+  <template id="portal_my_home_haccp" inherit_id="portal.portal_my_home">
+    <xpath expr="//div[@id='portal_common_category']" position="inside">
+      <t t-if="not request.env.user._is_public() and request.env.user.has_group('haccp_report.group_haccp_kitchen')">
+        <t t-call="portal.portal_docs_entry">
+          <t t-set="title">Étiquettes DLC</t>
+          <t t-set="text">Imprimer une nouvelle étiquette DLC cuisine</t>
+          <t t-set="url" t-value="'/haccp/etiquette/nouvelle'"/>
+          <t t-set="config_card" t-value="True"/>
+        </t>
+      </t>
+    </xpath>
+  </template>
 </odoo>

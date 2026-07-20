@@ -28,6 +28,17 @@ class TestHaccpPortalController(HttpCase):
         response = self.url_open('/haccp/etiquette/nouvelle')
         self.assertEqual(response.status_code, 403)
 
+    def test_carte_etiquette_dlc_visible_sur_accueil_portail_cuisine(self):
+        self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
+        response = self.url_open('/my')
+        self.assertIn('Étiquettes DLC', response.text)
+        self.assertIn('/haccp/etiquette/nouvelle', response.text)
+
+    def test_carte_etiquette_dlc_invisible_pour_portail_sans_groupe(self):
+        self.authenticate('portail.simple@example.com', 'portail123')
+        response = self.url_open('/my')
+        self.assertNotIn('Étiquettes DLC', response.text)
+
     def test_creation_force_operateur_depuis_session(self):
         self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
         autre_utilisateur = self.env['res.users'].create({
