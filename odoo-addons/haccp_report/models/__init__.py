@@ -8,3 +8,4 @@ from . import haccp_dilution
 from . import haccp_decongelation
 from . import haccp_reassort
 from . import haccp_document
+from . import zpl_printer
