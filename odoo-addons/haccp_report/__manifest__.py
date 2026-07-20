@@ -4,9 +4,10 @@
     'summary': 'Rapport PDF réglementaire HACCP pour contrôles DDPP',
     'category': 'Quality',
     'author': 'AIFluence Digital',
-    'depends': ['quality_control', 'web', 'mail'],
+    'depends': ['quality_control', 'web', 'mail', 'portal'],
     'data': [
         'security/ir.model.access.csv',
+        'data/haccp_dlc_ouverture_sequence.xml',
         'report/report_action.xml',
         'report/report_template.xml',
         'views/haccp_report_views.xml',

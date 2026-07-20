@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data noupdate="1">
+    <record id="seq_haccp_dlc_ouverture" model="ir.sequence">
+      <field name="name">Référence ouverture DLC</field>
+      <field name="code">haccp.dlc.ouverture</field>
+      <field name="prefix">%(year)s-%(doy)s-</field>
+      <field name="padding">3</field>
+      <field name="company_id" eval="False"/>
+    </record>
+  </data>
+</odoo>
