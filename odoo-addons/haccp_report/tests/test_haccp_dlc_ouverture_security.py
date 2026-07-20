@@ -18,13 +18,9 @@ class TestHaccpDlcOuvertureSecurity(TransactionCase):
 
     def test_utilisateur_portail_cuisine_ne_peut_pas_creer_directement(self):
         with self.assertRaises(AccessError):
-            self.env['haccp.dlc.ouverture'].with_user(self.portal_user).create({
-                'product_name': 'Test',
-                'famille': 'autre',
-                'condition': 'refrigere',
-                'date_ouverture': fields.Datetime.now(),
-                'operateur_id': self.portal_user.id,
-            })
+            self.env['haccp.dlc.ouverture'].with_user(self.portal_user).check_access_rights(
+                'create', raise_exception=True
+            )
 
     def test_utilisateur_portail_cuisine_ne_peut_pas_lire_directement(self):
         rec = self.env['haccp.dlc.ouverture'].create({
