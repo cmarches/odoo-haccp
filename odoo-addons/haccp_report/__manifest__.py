@@ -14,6 +14,7 @@
         'views/haccp_report_views.xml',
         'views/haccp_calculs_views.xml',
         'views/haccp_document_views.xml',
+        'views/haccp_portal_templates.xml',
         'views/menu.xml',
         'views/quality_inherit.xml',
     ],

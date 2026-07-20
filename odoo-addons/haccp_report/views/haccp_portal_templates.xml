@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <template id="portal_etiquette_form" name="Nouvelle étiquette DLC">
+    <html lang="fr">
+      <head>
+        <meta charset="utf-8"/>
+        <title>Nouvelle étiquette DLC</title>
+        <style>
+          body { font-family: -apple-system, Arial, sans-serif; max-width: 420px; margin: 20px auto; padding: 0 16px; }
+          .f-label { font-size: 12px; text-transform: uppercase; color: #666; margin-top: 14px; }
+          select, input { width: 100%; box-sizing: border-box; padding: 8px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; margin-top: 4px; }
+          .dlc-preview { margin-top: 16px; padding: 10px; border-radius: 6px; background: #eaf7ea; border: 1px solid #2c5f2d; color: #1e4620; text-align: center; font-weight: bold; }
+          .btn { margin-top: 16px; width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; }
+          .btn-preview { background: #eee; color: #333; }
+          .btn-print { background: #2c5f2d; color: #fff; }
+          .error { color: #b3261e; margin-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <h2>Nouvelle étiquette DLC</h2>
+        <p t-esc="'Connecté : %s' % user_name"/>
+        <t t-if="error">
+          <p class="error" t-esc="error"/>
+        </t>
+        <form method="get" action="/haccp/etiquette/nouvelle">
+          <input type="hidden" name="csrf_token" t-att-value="csrf_token"/>
+
+          <div class="f-label">Produit</div>
+          <select name="product_id">
+            <option value="">— Autre (saisie libre) —</option>
+            <t t-foreach="products" t-as="product">
+              <option t-att-value="product.id" t-att-selected="product.id == selected_product_id">
+                <t t-esc="product.name"/>
+              </option>
+            </t>
+          </select>
+          <div class="f-label">Nom du produit (si "Autre")</div>
+          <input type="text" name="product_name" t-att-value="product_name"/>
+
+          <div class="f-label">Famille</div>
+          <select name="famille">
+            <t t-foreach="famille_options" t-as="opt">
+              <option t-att-value="opt[0]" t-att-selected="opt[0] == famille">
+                <t t-esc="opt[1]"/>
+              </option>
+            </t>
+          </select>
+
+          <div class="f-label">Condition de conservation</div>
+          <select name="condition">
+            <t t-foreach="condition_options" t-as="opt">
+              <option t-att-value="opt[0]" t-att-selected="opt[0] == condition">
+                <t t-esc="opt[1]"/>
+              </option>
+            </t>
+          </select>
+
+          <div class="f-label">Date d'ouverture</div>
+          <input type="date" name="date_ouverture" t-att-value="date_ouverture"/>
+
+          <t t-if="duree_jours">
+            <div class="dlc-preview">
+              DLC calculée : <t t-esc="date_limite"/> (J+<t t-esc="duree_jours"/>)
+            </div>
+          </t>
+
+          <button type="submit" class="btn btn-preview">Actualiser l'aperçu</button>
+          <button type="submit" formmethod="post" class="btn btn-print">🖨 Imprimer l'étiquette</button>
+        </form>
+      </body>
+    </html>
+  </template>
+
+  <template id="portal_etiquette_confirmation" name="Étiquette imprimée">
+    <html lang="fr">
+      <head><meta charset="utf-8"/><title>Étiquette DLC</title></head>
+      <body style="font-family: -apple-system, Arial, sans-serif; max-width: 420px; margin: 20px auto; padding: 0 16px; color:#111;">
+        <h2>Étiquette DLC — <t t-esc="record.reference"/></h2>
+        <t t-if="print_ok">
+          <p style="color:#1e7d32; font-weight:bold;">✓ Étiquette envoyée à l'imprimante cuisine</p>
+        </t>
+        <t t-if="not print_ok">
+          <p style="color:#b3261e; font-weight:bold;">✗ Échec d'impression : <t t-esc="print_error"/></p>
+          <form method="post" t-attf-action="/haccp/etiquette/#{record.id}/#{record.access_token}/reessayer">
+            <input type="hidden" name="csrf_token" t-att-value="csrf_token"/>
+            <button type="submit">Réessayer l'impression</button>
+          </form>
+        </t>
+        <p>
+          Produit : <t t-esc="record.product_name"/><br/>
+          DLC : <t t-esc="record.date_limite"/>
+        </p>
+        <a href="/haccp/etiquette/nouvelle">Nouvelle étiquette</a>
+      </body>
+    </html>
+  </template>
+</odoo>
