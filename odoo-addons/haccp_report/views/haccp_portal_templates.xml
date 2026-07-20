@@ -128,7 +128,9 @@
           </form>
         </t>
         <t t-if="not can_close and record.statut == 'ouvert'">
-          <p style="font-size:12px;color:#666;margin-top:14px;">Connecte-toi avec un compte cuisine pour clôturer cette étiquette.</p>
+          <p style="font-size:12px;color:#666;margin-top:14px;">
+            <a t-attf-href="/web/login?redirect=#{record.access_url}" style="color:#2c5f2d;font-weight:bold;">Se connecter avec un compte cuisine</a> pour clôturer cette étiquette.
+          </p>
         </t>
       </body>
     </html>
