@@ -61,3 +61,13 @@ class TestHaccpDlcOuverture(TransactionCase):
     def test_access_token_genere_a_la_creation(self):
         rec = self._make()
         self.assertTrue(rec.access_token)
+
+    def test_duree_zero_conservation_non_recommandee(self):
+        rec = self._make(famille='viande_crue', condition='ambiant')
+        self.assertEqual(rec.duree_jours, 0)
+        self.assertFalse(rec.date_limite)
+
+    def test_action_cloturer_statut_invalide_leve_erreur(self):
+        rec = self._make()
+        with self.assertRaises(ValueError):
+            rec.action_cloturer('bogus')

@@ -11,6 +11,7 @@ class HaccpDlcOuverture(models.Model):
     _description = 'Ouverture DLC secondaire (étiquette cuisine)'
     _inherit = ['portal.mixin', 'mail.thread']
     _order = 'date_ouverture desc'
+    _rec_name = 'reference'
 
     reference = fields.Char(
         string='Référence', required=True, copy=False, readonly=True, default='Nouveau'
@@ -33,7 +34,7 @@ class HaccpDlcOuverture(models.Model):
         ('ouvert', 'Ouvert'),
         ('termine', 'Terminé'),
         ('jete', 'Jeté'),
-    ], string='Statut', default='ouvert', required=True, readonly=True)
+    ], string='Statut', default='ouvert', required=True, readonly=True, tracking=True)
     date_cloture = fields.Datetime(string='Date de clôture', readonly=True)
     est_expire = fields.Boolean(string='Expiré', compute='_compute_est_expire')
 
@@ -74,6 +75,7 @@ class HaccpDlcOuverture(models.Model):
         if self.statut != 'ouvert':
             raise UserError(_('Cette étiquette est déjà clôturée.'))
         self.write({'statut': statut, 'date_cloture': fields.Datetime.now()})
+        self.message_post(body=_('Étiquette clôturée : %s') % dict(self._fields['statut'].selection)[statut])
 
     def _compute_access_url(self):
         super()._compute_access_url()
