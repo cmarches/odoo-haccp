@@ -40,6 +40,35 @@ class TestBuildZpl(TransactionCase):
         self.assertNotIn('~test', zpl)
         self.assertIn('Bœuf  légumes test', zpl)
 
+    def test_declares_utf8_encoding_for_accented_characters(self):
+        # ^CI28 est requis pour que le firmware Zebra interprète le texte en
+        # UTF-8 — sans ça les accents (é, à...) s'impriment corrompus.
+        zpl = build_zpl(
+            reference='ref', product_name='Réfrigéré', date_ouverture='19/07/2026',
+            operateur_name='M. Dupont', date_limite='22/07/2026', duree_jours=3,
+            condition_label='Réfrigéré (+4°C)', portal_url='http://example.com',
+        )
+        self.assertIn('^CI28', zpl)
+        self.assertTrue(zpl.index('^CI28') < zpl.index('^FD'))
+
+    def test_barcode_and_qr_code_do_not_overlap_horizontally(self):
+        # Le QR doit démarrer nettement après la fin du code-barre (même
+        # ligne, pas empilé) pour ne jamais chevaucher, quelle que soit la
+        # taille réelle du QR (qui dépend de la longueur de l'URL encodée).
+        zpl = build_zpl(
+            reference='2026-201-610', product_name='Sauce tomate maison',
+            date_ouverture='19/07/2026', operateur_name='M. Dupont',
+            date_limite='22/07/2026', duree_jours=3,
+            condition_label='Réfrigéré (+4°C)',
+            portal_url='http://192.168.1.182:8029/haccp/etiquette/610/'
+                       'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        )
+        barcode_line = next(line for line in zpl.splitlines() if '^BCN' in line)
+        qr_line = next(line for line in zpl.splitlines() if '^BQN' in line)
+        barcode_x = int(barcode_line.split('^FO')[1].split(',')[0])
+        qr_x = int(qr_line.split('^FO')[1].split(',')[0])
+        self.assertGreater(qr_x, barcode_x + 250)
+
 
 class TestSendZpl(TransactionCase):
     def test_returns_error_when_printer_ip_not_configured(self):

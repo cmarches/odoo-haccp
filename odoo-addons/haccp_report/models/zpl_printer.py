@@ -9,20 +9,40 @@ def _zpl_safe(text):
 
 def build_zpl(reference, product_name, date_ouverture, operateur_name,
                date_limite, duree_jours, condition_label, portal_url):
-    """Construit le ZPL pour l'étiquette DLC secondaire (format 62x38mm,
-    imprimante OXHOO TLP200 compatible Zebra ZPL)."""
+    """Construit le ZPL pour l'étiquette DLC secondaire (imprimante OXHOO
+    TLP200 compatible Zebra ZPL, étiquette 99x80mm @ 203dpi = 792x640 dots).
+
+    ^CI28 déclare l'encodage UTF-8 pour que les accents (é, à...) s'impriment
+    correctement — sans cette commande le firmware Zebra interprète le texte
+    avec son codepage par défaut et corrompt les caractères accentués.
+
+    ^PW/^LL déclarent explicitement les dimensions du canevas en dots plutôt
+    que de dépendre de la config mémorisée par l'imprimante, pour que les
+    coordonnées ci-dessous correspondent réellement à la taille physique de
+    l'étiquette.
+
+    Le code-barre (^BY2, ~360 dots de large max pour une référence type
+    AAAA-JJJ-NNN) et le QR sont placés côte à côte sur la même ligne, avec
+    une marge large entre les deux, plutôt qu'empilés verticalement — la
+    taille réelle du QR dépend de la longueur de l'URL encodée (référence +
+    token) et peut dépasser la hauteur du code-barre, donc les empiler
+    créait un chevauchement quelle que soit cette taille."""
     return (
         '^XA\n'
-        '^CF0,30\n'
-        f'^FO20,20^FD{_zpl_safe(product_name)}^FS\n'
-        '^CF0,20\n'
-        f'^FO20,60^FDOuvert: {_zpl_safe(date_ouverture)}  Par: {_zpl_safe(operateur_name)}^FS\n'
-        '^FO20,90^GB300,40,2^FS\n'
-        '^CF0,28\n'
-        f'^FO30,100^FDDLC: {_zpl_safe(date_limite)} (J+{duree_jours})^FS\n'
-        f'^FO20,150^FDConservation: {_zpl_safe(condition_label)}^FS\n'
-        f'^BY2^FO20,180^BCN,50,Y,N,N^FD{_zpl_safe(reference)}^FS\n'
-        f'^FO250,150^BQN,2,4^FDQA,{_zpl_safe(portal_url)}^FS\n'
+        '^CI28\n'
+        '^PW792\n'
+        '^LL640\n'
+        '^CF0,50\n'
+        f'^FO40,50^FD{_zpl_safe(product_name)}^FS\n'
+        '^CF0,32\n'
+        f'^FO40,120^FDOuvert: {_zpl_safe(date_ouverture)}  Par: {_zpl_safe(operateur_name)}^FS\n'
+        '^FO40,175^GB712,4,4^FS\n'
+        '^CF0,48\n'
+        f'^FO40,205^FDDLC: {_zpl_safe(date_limite)} (J+{duree_jours})^FS\n'
+        '^CF0,32\n'
+        f'^FO40,275^FDConservation: {_zpl_safe(condition_label)}^FS\n'
+        f'^BY2^FO40,340^BCN,100,Y,N,N^FD{_zpl_safe(reference)}^FS\n'
+        f'^FO460,320^BQN,2,5^FDQA,{_zpl_safe(portal_url)}^FS\n'
         '^XZ\n'
     )
 
