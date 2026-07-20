@@ -25,6 +25,21 @@ class TestBuildZpl(TransactionCase):
         self.assertIn('22/07/2026', zpl)
         self.assertIn('http://192.168.1.182:8029/haccp/etiquette/42/abc123', zpl)
 
+    def test_strips_reserved_zpl_characters_from_fields(self):
+        zpl = build_zpl(
+            reference='ref',
+            product_name='Bœuf ^ légumes ~test',
+            date_ouverture='19/07/2026',
+            operateur_name='M. Dupont',
+            date_limite='22/07/2026',
+            duree_jours=3,
+            condition_label='Réfrigéré (+4°C)',
+            portal_url='http://example.com',
+        )
+        self.assertNotIn('^ légumes', zpl)
+        self.assertNotIn('~test', zpl)
+        self.assertIn('Bœuf  légumes test', zpl)
+
 
 class TestSendZpl(TransactionCase):
     def test_returns_error_when_printer_ip_not_configured(self):
