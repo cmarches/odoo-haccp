@@ -15,6 +15,13 @@ class TestHaccpDlcOuvertureSecurity(TransactionCase):
                 self.env.ref('haccp_report.group_haccp_kitchen').id,
             ])],
         })
+        self.quality_user = self.env['res.users'].create({
+            'name': 'Quality User Test',
+            'login': 'quality.test@example.com',
+            'group_ids': [(6, 0, [
+                self.env.ref('quality.group_quality_user').id,
+            ])],
+        })
 
     def test_utilisateur_portail_cuisine_ne_peut_pas_creer_directement(self):
         with self.assertRaises(AccessError):
@@ -32,3 +39,24 @@ class TestHaccpDlcOuvertureSecurity(TransactionCase):
         })
         with self.assertRaises(AccessError):
             rec.with_user(self.portal_user).read(['product_name'])
+
+    def test_quality_user_peut_creer(self):
+        rec = self.env['haccp.dlc.ouverture'].with_user(self.quality_user).create({
+            'product_name': 'Test',
+            'famille': 'autre',
+            'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(),
+            'operateur_id': self.quality_user.id,
+        })
+        self.assertTrue(rec)
+
+    def test_quality_user_ne_peut_pas_supprimer(self):
+        rec = self.env['haccp.dlc.ouverture'].create({
+            'product_name': 'Test',
+            'famille': 'autre',
+            'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(),
+            'operateur_id': self.env.user.id,
+        })
+        with self.assertRaises(AccessError):
+            rec.with_user(self.quality_user).unlink()
