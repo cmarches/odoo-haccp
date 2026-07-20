@@ -86,12 +86,23 @@ class HaccpPortalController(http.Controller):
                 **post,
             )
 
+        date_ouverture_raw = post.get('date_ouverture')
+        date_ouverture = fields.Datetime.now()
+        if date_ouverture_raw:
+            try:
+                date_ouverture = fields.Datetime.to_datetime(date_ouverture_raw)
+            except ValueError:
+                return self.haccp_etiquette_form(
+                    error=_('Date d\'ouverture invalide.'),
+                    **post,
+                )
+
         record = request.env['haccp.dlc.ouverture'].sudo().create({
             'product_id': product_id,
             'product_name': product_name,
             'famille': post['famille'],
             'condition': post['condition'],
-            'date_ouverture': post.get('date_ouverture') or fields.Datetime.now(),
+            'date_ouverture': date_ouverture,
             'operateur_id': request.env.user.id,
         })
 
