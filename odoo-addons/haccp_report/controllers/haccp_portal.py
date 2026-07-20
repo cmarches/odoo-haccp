@@ -128,3 +128,29 @@ class HaccpPortalController(http.Controller):
         self._check_kitchen_group()
         record = self._get_record_or_404(ouverture_id, access_token)
         return self._print_and_render(record)
+
+    @http.route(
+        '/haccp/etiquette/<int:ouverture_id>/<string:access_token>',
+        type='http', auth='public', methods=['GET'],
+    )
+    def haccp_etiquette_view(self, ouverture_id, access_token, **kwargs):
+        record = self._get_record_or_404(ouverture_id, access_token)
+        can_close = (
+            not request.env.user._is_public()
+            and request.env.user.has_group('haccp_report.group_haccp_kitchen')
+        )
+        return request.render('haccp_report.portal_etiquette_view', {
+            'record': record,
+            'can_close': can_close,
+            'csrf_token': request.csrf_token(),
+        })
+
+    @http.route(
+        '/haccp/etiquette/<int:ouverture_id>/<string:access_token>/cloturer',
+        type='http', auth='user', methods=['POST'], csrf=True,
+    )
+    def haccp_etiquette_cloturer(self, ouverture_id, access_token, statut, **post):
+        self._check_kitchen_group()
+        record = self._get_record_or_404(ouverture_id, access_token)
+        record.action_cloturer(statut)
+        return request.redirect('/haccp/etiquette/%s/%s' % (ouverture_id, access_token))

@@ -94,4 +94,43 @@
       </body>
     </html>
   </template>
+
+  <template id="portal_etiquette_view" name="Fiche étiquette DLC">
+    <html lang="fr">
+      <head><meta charset="utf-8"/><title>Fiche DLC</title></head>
+      <body style="font-family: -apple-system, Arial, sans-serif; max-width: 420px; margin: 20px auto; padding: 0 16px; text-align:center; color:#111;">
+        <h2>Fiche DLC — <t t-esc="record.product_name"/></h2>
+        <p>
+          <t t-if="record.statut == 'ouvert' and not record.est_expire">
+            <span style="color:#1e7d32; font-weight:bold;">✓ Valide</span>
+          </t>
+          <t t-if="record.statut == 'ouvert' and record.est_expire">
+            <span style="color:#b3261e; font-weight:bold;">⚠ Expiré</span>
+          </t>
+          <t t-if="record.statut == 'termine'">
+            <span style="color:#555; font-weight:bold;">Terminé</span>
+          </t>
+          <t t-if="record.statut == 'jete'">
+            <span style="color:#555; font-weight:bold;">Jeté</span>
+          </t>
+        </p>
+        <div style="text-align:left; font-size:14px; line-height:1.6;">
+          Référence : <t t-esc="record.reference"/><br/>
+          Ouvert le : <t t-esc="record.date_ouverture"/><br/>
+          Par : <t t-esc="record.operateur_id.name"/><br/>
+          DLC : <t t-esc="record.date_limite"/>
+        </div>
+        <t t-if="can_close and record.statut == 'ouvert'">
+          <form method="post" t-attf-action="/haccp/etiquette/#{record.id}/#{record.access_token}/cloturer">
+            <input type="hidden" name="csrf_token" t-att-value="csrf_token"/>
+            <button type="submit" name="statut" value="termine" style="background:#2c5f2d;color:#fff;padding:10px;border:none;border-radius:6px;width:100%;margin-top:14px;">Marquer terminé</button>
+            <button type="submit" name="statut" value="jete" style="background:#b3261e;color:#fff;padding:10px;border:none;border-radius:6px;width:100%;margin-top:8px;">Marquer jeté</button>
+          </form>
+        </t>
+        <t t-if="not can_close and record.statut == 'ouvert'">
+          <p style="font-size:12px;color:#666;margin-top:14px;">Connecte-toi avec un compte cuisine pour clôturer cette étiquette.</p>
+        </t>
+      </body>
+    </html>
+  </template>
 </odoo>
