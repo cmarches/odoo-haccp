@@ -13,6 +13,15 @@ from odoo.addons.haccp_report.models.zpl_printer import build_zpl, send_zpl
 _logger = logging.getLogger(__name__)
 
 
+def _parse_product_id(value):
+    """Convertit product_id en int, ou False si absent/non numérique
+    (une requête forgée pourrait envoyer une valeur non numérique)."""
+    try:
+        return int(value) if value else False
+    except ValueError:
+        return False
+
+
 class HaccpPortalController(http.Controller):
 
     def _check_kitchen_group(self):
@@ -37,11 +46,14 @@ class HaccpPortalController(http.Controller):
         condition = kwargs.get('condition') or 'refrigere'
         duree_jours = DLC_TABLE.get((famille, condition), 0)
         date_ouverture = kwargs.get('date_ouverture') or fields.Date.today().isoformat()
+        try:
+            parsed_date = fields.Date.from_string(date_ouverture)
+        except ValueError:
+            date_ouverture = fields.Date.today().isoformat()
+            parsed_date = fields.Date.today()
         date_limite = None
         if duree_jours:
-            date_limite = (
-                fields.Date.from_string(date_ouverture) + timedelta(days=duree_jours)
-            ).isoformat()
+            date_limite = (parsed_date + timedelta(days=duree_jours)).isoformat()
 
         return request.render('haccp_report.portal_etiquette_form', {
             'products': products,
@@ -51,7 +63,7 @@ class HaccpPortalController(http.Controller):
             'condition': condition,
             'date_ouverture': date_ouverture,
             'product_name': kwargs.get('product_name', ''),
-            'selected_product_id': int(kwargs['product_id']) if kwargs.get('product_id') else False,
+            'selected_product_id': _parse_product_id(kwargs.get('product_id')),
             'duree_jours': duree_jours,
             'date_limite': date_limite,
             'user_name': request.env.user.name,
@@ -63,7 +75,7 @@ class HaccpPortalController(http.Controller):
     def haccp_etiquette_submit(self, **post):
         self._check_kitchen_group()
 
-        product_id = int(post['product_id']) if post.get('product_id') else False
+        product_id = _parse_product_id(post.get('product_id'))
         product_name = post.get('product_name') or ''
         if product_id:
             product_name = request.env['product.template'].sudo().browse(product_id).name
@@ -101,6 +113,8 @@ class HaccpPortalController(http.Controller):
             portal_url=portal_url,
         )
         ok, error = send_zpl(zpl, printer_ip)
+        if not ok:
+            _logger.warning('Échec impression étiquette %s : %s', record.reference, error)
         return request.render('haccp_report.portal_etiquette_confirmation', {
             'record': record, 'print_ok': ok, 'print_error': error,
             'csrf_token': request.csrf_token(),
