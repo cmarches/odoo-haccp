@@ -5,6 +5,8 @@
 **Auteur :** Brainstorming AIFluence Digital
 **Périmètre :** Définition des 6 scénarios d'architecture de la solution HACCP IoT, du capteur au rapport PDF DDPP
 
+> **Amendé le 2026-07-22** par `2026-07-22-architecture-sans-vnode-design.md` : la décision D3 et les Cas C, D, E sont mis à jour (vNode retiré, ChirpStack self-hosté sur l'edge remplace TTN+vNode). Cas A, B, F inchangés. Se référer au document de 2026-07-22 pour l'architecture actuelle de ces trois cas.
+
 ---
 
 ## 1. Contexte
