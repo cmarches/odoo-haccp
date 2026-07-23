@@ -131,8 +131,24 @@ def main(argv=None):
         )
         return 1
 
+    topic = build_topic(args.application_id, args.device)
+    payload = build_uplink_payload(args.device, args.field, args.value)
+
+    print(f"Publication d'un uplink simule — device={args.device} {args.field}={args.value}")
+    print(f"MQTT {args.mqtt_host}:{args.mqtt_port} -> {topic}")
+
+    try:
+        publish_uplink(args.mqtt_host, args.mqtt_port, topic, payload)
+    except OSError as e:
+        print(f"ERREUR MQTT : {e}", file=sys.stderr)
+        return 1
+
+    print("OK — uplink simule publie")
+    print("Observe maintenant en direct :")
+    print("  - Odoo (quality.check / quality.alert) sur http://192.168.1.182:8029")
+    print("  - Le telephone configure pour les SMS d'alerte")
     return 0
 
 
 if __name__ == "__main__":
-    pass
+    sys.exit(main())

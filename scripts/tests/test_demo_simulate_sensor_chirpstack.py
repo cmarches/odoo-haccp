@@ -64,5 +64,49 @@ class TestMqttPortFromEnv(unittest.TestCase):
         self.assertIn("AVERTISSEMENT", stderr.getvalue())
 
 
+class TestMainSuccess(unittest.TestCase):
+    def test_success_publishes_and_returns_0(self):
+        stdout = io.StringIO()
+        with patch.object(demo, "publish_uplink") as mock_publish, patch("sys.stdout", stdout):
+            code = demo.main([
+                "--device", "lht65-frigo-positif",
+                "--value", "12.0",
+                "--application-id", "haccp-restaurant-poc",
+                "--mqtt-host", "127.0.0.1",
+                "--mqtt-port", "1883",
+            ])
+        self.assertEqual(code, 0)
+        mock_publish.assert_called_once_with(
+            "127.0.0.1",
+            1883,
+            "application/haccp-restaurant-poc/device/lht65-frigo-positif/event/up",
+            {"deviceInfo": {"deviceName": "lht65-frigo-positif"}, "object": {"temperature_1": 12.0}},
+        )
+        self.assertIn("OK", stdout.getvalue())
+
+    def test_humidity_field_builds_correct_payload(self):
+        with patch.object(demo, "publish_uplink") as mock_publish:
+            demo.main([
+                "--device", "lht65-stockage-sec",
+                "--value", "90.0",
+                "--field", "humidity",
+            ])
+        called_payload = mock_publish.call_args[0][3]
+        self.assertEqual(
+            called_payload,
+            {"deviceInfo": {"deviceName": "lht65-stockage-sec"}, "object": {"humidity": 90.0}},
+        )
+
+
+class TestMainMqttError(unittest.TestCase):
+    def test_mqtt_error_prints_message_and_returns_1(self):
+        stderr = io.StringIO()
+        with patch.object(demo, "publish_uplink", side_effect=ConnectionRefusedError("refused")), \
+             patch("sys.stderr", stderr):
+            code = demo.main(["--device", "lht65-frigo-positif", "--value", "12.0"])
+        self.assertEqual(code, 1)
+        self.assertIn("ERREUR MQTT", stderr.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
