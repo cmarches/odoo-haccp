@@ -159,5 +159,14 @@ def forward_reading(reading: Reading, bridge_url: str, timeout: float) -> bool:
         return False
 
 
+def flush_buffer(buffer: Buffer, bridge_url: str, timeout: float) -> None:
+    """Envoie les mesures en attente dans l'ordre, s'arrete au premier echec
+    pour preserver l'ordre et eviter de marteler un backend indisponible."""
+    for row_id, reading in buffer.pending():
+        if not forward_reading(reading, bridge_url, timeout):
+            break
+        buffer.remove(row_id)
+
+
 if __name__ == "__main__":
     pass

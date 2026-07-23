@@ -8,7 +8,7 @@ import unittest
 import urllib.error
 from unittest.mock import MagicMock, patch
 
-from edge_agent import Buffer, Reading, forward_reading, parse_uplink
+from edge_agent import Buffer, Reading, flush_buffer, forward_reading, parse_uplink
 
 
 class TestParseUplink(unittest.TestCase):
@@ -209,6 +209,38 @@ class TestForwardReading(unittest.TestCase):
         ):
             result = forward_reading(reading, "http://127.0.0.1:5001/quality-check", timeout=5)
         self.assertFalse(result)
+
+
+class TestFlushBuffer(unittest.TestCase):
+    def setUp(self):
+        fd, self.db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        self.buffer = Buffer(self.db_path)
+
+    def tearDown(self):
+        self.buffer.close()
+        os.remove(self.db_path)
+
+    def test_flush_sends_all_and_empties_buffer(self):
+        self.buffer.enqueue(Reading(qcp_id=1, value=1.0, tag="Frigo_Temperature", quality=192))
+        self.buffer.enqueue(Reading(qcp_id=2, value=2.0, tag="Congelateur_Temperature", quality=192))
+        with patch("edge_agent.forward_reading", return_value=True) as mock_forward:
+            flush_buffer(self.buffer, "http://bridge/quality-check", timeout=5)
+        self.assertEqual(self.buffer.pending(), [])
+        self.assertEqual(mock_forward.call_count, 2)
+
+    def test_flush_stops_at_first_failure_and_keeps_rest(self):
+        self.buffer.enqueue(Reading(qcp_id=1, value=1.0, tag="Frigo_Temperature", quality=192))
+        self.buffer.enqueue(Reading(qcp_id=2, value=2.0, tag="Congelateur_Temperature", quality=192))
+        with patch("edge_agent.forward_reading", return_value=False) as mock_forward:
+            flush_buffer(self.buffer, "http://bridge/quality-check", timeout=5)
+        self.assertEqual(len(self.buffer.pending()), 2)
+        mock_forward.assert_called_once()
+
+    def test_flush_on_empty_buffer_does_nothing(self):
+        with patch("edge_agent.forward_reading") as mock_forward:
+            flush_buffer(self.buffer, "http://bridge/quality-check", timeout=5)
+        mock_forward.assert_not_called()
 
 
 if __name__ == "__main__":
