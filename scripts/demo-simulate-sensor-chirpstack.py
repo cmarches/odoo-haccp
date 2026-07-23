@@ -45,6 +45,18 @@ def build_uplink_payload(device_id, field, value):
     }
 
 
+def publish_uplink(mqtt_host, mqtt_port, topic, payload):
+    import paho.mqtt.publish as mqtt_publish  # import local : garde le script testable sans paho
+
+    mqtt_publish.single(
+        topic,
+        payload=json.dumps(payload),
+        hostname=mqtt_host,
+        port=mqtt_port,
+        qos=0,
+    )
+
+
 def _mqtt_port_from_env():
     raw = os.environ.get("MQTT_PORT", "1883")
     try:
