@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+"""
+HACCP Edge Agent — souscrit aux uplinks ChirpStack (MQTT), bufferise
+localement en SQLite, et relaie vers haccp-odoo-bridge en HTTP.
+
+Remplace vNode (MqttClient + RestApiClient) sur l'edge. Ne modifie pas
+le contrat de haccp-odoo-bridge : POST /quality-check,
+body {"qcp_id": int, "value": float, "tag": str, "quality": int}.
+"""
+import http.client
+import json
+import logging
+import os
+import sqlite3
+import threading
+import time
+import urllib.error
+import urllib.request
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import List, Optional, Tuple
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+log = logging.getLogger("haccp-edge-agent")
+
+QUALITY_GOOD = 192
+
+# (device ChirpStack deviceInfo.deviceName) -> champ decode a lire dans
+# "object", tag Odoo correspondant, et qcp_id du quality.point associe.
+# Reproduit exactement les 3 (device, champ) actuellement relayes par
+# vNode RestApiClient (voir infra/ops121s/vnode/config/RestApiClient-config.n3c).
+DEVICE_QCP_MAP = {
+    "lht65-frigo-positif": {
+        "field": "temperature_1", "tag": "Frigo_Temperature", "qcp_id": 1,
+    },
+    "lht65-congelateur": {
+        "field": "temperature_1", "tag": "Congelateur_Temperature", "qcp_id": 2,
+    },
+    "lht65-stockage-sec": {
+        "field": "humidity", "tag": "Stockage_Humidity", "qcp_id": 3,
+    },
+}
+
+
+@dataclass(frozen=True)
+class Reading:
+    qcp_id: int
+    value: float
+    tag: str
+    quality: int = QUALITY_GOOD
+
+
+def parse_uplink(payload: dict) -> Optional[Reading]:
+    try:
+        device_name = payload.get("deviceInfo", {}).get("deviceName")
+        mapping = DEVICE_QCP_MAP.get(device_name)
+        if mapping is None:
+            return None
+        obj = payload.get("object") or {}
+        value = obj.get(mapping["field"])
+        if value is None:
+            return None
+        return Reading(qcp_id=mapping["qcp_id"], value=float(value), tag=mapping["tag"])
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
+class Buffer:
+    """File d'attente locale persistante (SQLite) pour les mesures a relayer.
+
+    Partagee entre le thread reseau MQTT (paho-mqtt loop_start, qui appelle
+    enqueue() depuis on_message) et le thread principal (boucle de flush qui
+    appelle pending()/remove()). check_same_thread=False leve l'interdiction
+    sqlite3 par defaut, et un verrou grossier serialise les acces car une
+    connexion sqlite3 n'est pas surete pour une execution concurrente de
+    requetes depuis plusieurs threads a la fois. Charge faible (quelques
+    capteurs toutes les 10-20 min) : un verrou unique par methode suffit.
+    """
+
+    def __init__(self, db_path: str):
+        self._conn = sqlite3.connect(db_path, check_same_thread=False)
+        self._lock = threading.Lock()
+        with self._lock:
+            self._conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pending_readings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    created_at TEXT NOT NULL,
+                    qcp_id INTEGER NOT NULL,
+                    value REAL NOT NULL,
+                    tag TEXT NOT NULL,
+                    quality INTEGER NOT NULL
+                )
+                """
+            )
+            self._conn.commit()
+
+    def enqueue(self, reading: Reading) -> None:
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO pending_readings (created_at, qcp_id, value, tag, quality) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (
+                    datetime.now(timezone.utc).isoformat(),
+                    reading.qcp_id,
+                    reading.value,
+                    reading.tag,
+                    reading.quality,
+                ),
+            )
+            self._conn.commit()
+
+    def pending(self) -> List[Tuple[int, Reading]]:
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT id, qcp_id, value, tag, quality FROM pending_readings ORDER BY id ASC"
+            )
+            rows = cursor.fetchall()
+        return [
+            (row[0], Reading(qcp_id=row[1], value=row[2], tag=row[3], quality=row[4]))
+            for row in rows
+        ]
+
+    def remove(self, row_id: int) -> None:
+        with self._lock:
+            self._conn.execute("DELETE FROM pending_readings WHERE id = ?", (row_id,))
+            self._conn.commit()
+
+    def close(self) -> None:
+        with self._lock:
+            self._conn.close()
+
+
+def forward_reading(reading: Reading, bridge_url: str, timeout: float) -> bool:
+    body = json.dumps(
+        {
+            "qcp_id": reading.qcp_id,
+            "value": reading.value,
+            "tag": reading.tag,
+            "quality": reading.quality,
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        bridge_url, data=body, method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            ok = 200 <= resp.status < 300
+            if not ok:
+                log.warning("Bridge a repondu %s pour tag=%s", resp.status, reading.tag)
+            return ok
+    except (urllib.error.URLError, TimeoutError, http.client.HTTPException) as e:
+        log.warning("Echec envoi vers le bridge (tag=%s): %s", reading.tag, e)
+        return False
+
+
+def flush_buffer(buffer: Buffer, bridge_url: str, timeout: float) -> None:
+    """Envoie les mesures en attente dans l'ordre, s'arrete au premier echec
+    pour preserver l'ordre et eviter de marteler un backend indisponible.
+
+    Une erreur SQLite (disque plein, "database is locked", etc.) sur le
+    buffer lui-meme interrompt proprement le cycle de flush courant plutot
+    que de remonter et faire planter la boucle principale de main()."""
+    try:
+        rows = buffer.pending()
+    except sqlite3.Error as e:
+        log.warning("Erreur SQLite lors de la lecture du buffer, flush annule: %s", e)
+        return
+    for row_id, reading in rows:
+        if not forward_reading(reading, bridge_url, timeout):
+            break
+        try:
+            buffer.remove(row_id)
+        except sqlite3.Error as e:
+            log.warning("Erreur SQLite lors de la suppression de la mesure envoyee, flush arrete: %s", e)
+            return
+
+
+def on_message(client, userdata, msg) -> None:
+    """Callback MQTT (signature paho: client, userdata, msg).
+    userdata doit etre {"buffer": Buffer(...)} (voir main()). Se degrade
+    gracieusement (log + return, sans jamais lever) si "buffer" est absent
+    de userdata ou si l'ecriture dans le buffer SQLite echoue (disque plein,
+    "database is locked", etc.) : ce callback tourne dans le thread reseau
+    paho-mqtt, ou une exception non interceptee serait silencieusement
+    avalee (voir _easy_log de paho, no-op sans enable_logger())."""
+    try:
+        payload = json.loads(msg.payload.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        log.warning("Payload MQTT invalide sur %s: %s", msg.topic, e)
+        return
+    reading = parse_uplink(payload)
+    if reading is None:
+        log.debug("Uplink ignore (device/champ non mappe): %s", msg.topic)
+        return
+    buffer = userdata.get("buffer")
+    if buffer is None:
+        log.error("on_message appele sans buffer dans userdata — impossible d'enqueuer la mesure")
+        return
+    try:
+        buffer.enqueue(reading)
+    except sqlite3.Error as e:
+        log.warning("Erreur SQLite lors de la mise en file (tag=%s): %s", reading.tag, e)
+        return
+    log.info("Mesure mise en file: tag=%s value=%s", reading.tag, reading.value)
+
+
+def main() -> None:
+    import paho.mqtt.client as mqtt  # import local : garde le reste du module testable sans paho
+
+    mqtt_host = os.environ.get("MQTT_HOST", "127.0.0.1")
+    mqtt_port = int(os.environ.get("MQTT_PORT", "1883"))
+    application_id = os.environ.get("CHIRPSTACK_APPLICATION_ID", "")
+    if not application_id:
+        raise SystemExit("CHIRPSTACK_APPLICATION_ID environment variable is required")
+    bridge_url = os.environ.get("ODOO_BRIDGE_URL", "http://127.0.0.1:5001/quality-check")
+    buffer_db_path = os.environ.get("BUFFER_DB_PATH", "buffer.db")
+    flush_interval = float(os.environ.get("FLUSH_INTERVAL_SECONDS", "10"))
+    http_timeout = float(os.environ.get("HTTP_TIMEOUT_SECONDS", "10"))
+
+    buffer = Buffer(buffer_db_path)
+    topic = f"application/{application_id}/device/+/event/up"
+
+    def _on_connect(client, userdata, flags, rc):
+        if rc != 0:
+            log.error("Echec connexion MQTT %s:%s (rc=%s)", mqtt_host, mqtt_port, rc)
+            return
+        log.info("Connecte au broker MQTT %s:%s (rc=%s) — souscription %s", mqtt_host, mqtt_port, rc, topic)
+        client.subscribe(topic)
+
+    client = mqtt.Client(userdata={"buffer": buffer})
+    client.enable_logger(log)
+    client.on_connect = _on_connect
+    client.on_message = on_message
+    client.connect(mqtt_host, mqtt_port)
+    client.loop_start()
+
+    log.info(
+        "haccp-edge-agent demarre — MQTT %s:%s, bridge %s, buffer %s",
+        mqtt_host, mqtt_port, bridge_url, buffer_db_path,
+    )
+    try:
+        while True:
+            flush_buffer(buffer, bridge_url, http_timeout)
+            time.sleep(flush_interval)
+    except KeyboardInterrupt:
+        log.info("Arret demande")
+    finally:
+        client.loop_stop()
+        buffer.close()
+
+
+if __name__ == "__main__":
+    main()

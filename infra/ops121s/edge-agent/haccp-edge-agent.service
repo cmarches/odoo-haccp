@@ -1,0 +1,18 @@
+[Unit]
+Description=HACCP Edge Agent — ChirpStack MQTT -> buffer local -> Odoo bridge
+After=network.target
+
+[Service]
+Type=simple
+User=christian
+WorkingDirectory=/home/christian/haccp/edge-agent
+ExecStart=/usr/bin/python3 /home/christian/haccp/edge-agent/edge_agent.py
+EnvironmentFile=/home/christian/haccp/edge-agent/edge-agent.env
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=haccp-edge-agent
+
+[Install]
+WantedBy=multi-user.target
