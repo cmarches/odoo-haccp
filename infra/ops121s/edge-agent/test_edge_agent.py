@@ -286,6 +286,14 @@ class TestOnMessage(unittest.TestCase):
         on_message(MagicMock(), {"buffer": self.buffer}, msg)
         self.assertEqual(self.buffer.pending(), [])
 
+    def test_missing_buffer_in_userdata_does_not_raise(self):
+        payload = {
+            "deviceInfo": {"deviceName": "lht65-frigo-positif"},
+            "object": {"temperature_1": 3.5},
+        }
+        msg = self._make_msg("application/app1/device/xyz/event/up", payload)
+        on_message(MagicMock(), {}, msg)
+
 
 if __name__ == "__main__":
     unittest.main()

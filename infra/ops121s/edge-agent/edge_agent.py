@@ -180,7 +180,11 @@ def on_message(client, userdata, msg) -> None:
     if reading is None:
         log.debug("Uplink ignore (device/champ non mappe): %s", msg.topic)
         return
-    userdata["buffer"].enqueue(reading)
+    buffer = userdata.get("buffer")
+    if buffer is None:
+        log.error("on_message appele sans buffer dans userdata — impossible d'enqueuer la mesure")
+        return
+    buffer.enqueue(reading)
     log.info("Mesure mise en file: tag=%s value=%s", reading.tag, reading.value)
 
 
