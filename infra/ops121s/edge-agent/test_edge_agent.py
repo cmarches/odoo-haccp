@@ -1,6 +1,7 @@
 """Tests unitaires pour haccp-edge-agent (ChirpStack MQTT -> buffer -> bridge Odoo)."""
 import os
 import tempfile
+import threading
 import unittest
 
 from edge_agent import Buffer, Reading, parse_uplink
@@ -115,6 +116,29 @@ class TestBuffer(unittest.TestCase):
         reopened = Buffer(self.db_path)
         self.assertEqual(len(reopened.pending()), 1)
         reopened.close()
+
+    def test_concurrent_enqueue_from_multiple_threads_is_safe(self):
+        num_threads = 4
+        writes_per_thread = 25
+        errors = []
+
+        def worker():
+            try:
+                for i in range(writes_per_thread):
+                    self.buffer.enqueue(
+                        Reading(qcp_id=1, value=float(i), tag="Frigo_Temperature", quality=192)
+                    )
+            except Exception as exc:  # pragma: no cover - failure path
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker) for _ in range(num_threads)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(errors, [])
+        self.assertEqual(len(self.buffer.pending()), num_threads * writes_per_thread)
 
 
 if __name__ == "__main__":

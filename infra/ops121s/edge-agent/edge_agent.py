@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import sqlite3
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -68,53 +69,69 @@ def parse_uplink(payload: dict) -> Optional[Reading]:
 
 
 class Buffer:
-    """File d'attente locale persistante (SQLite) pour les mesures a relayer."""
+    """File d'attente locale persistante (SQLite) pour les mesures a relayer.
+
+    Partagee entre le thread reseau MQTT (paho-mqtt loop_start, qui appelle
+    enqueue() depuis on_message) et le thread principal (boucle de flush qui
+    appelle pending()/remove()). check_same_thread=False leve l'interdiction
+    sqlite3 par defaut, et un verrou grossier serialise les acces car une
+    connexion sqlite3 n'est pas surete pour une execution concurrente de
+    requetes depuis plusieurs threads a la fois. Charge faible (quelques
+    capteurs toutes les 10-20 min) : un verrou unique par methode suffit.
+    """
 
     def __init__(self, db_path: str):
-        self._conn = sqlite3.connect(db_path)
-        self._conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS pending_readings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                created_at TEXT NOT NULL,
-                qcp_id INTEGER NOT NULL,
-                value REAL NOT NULL,
-                tag TEXT NOT NULL,
-                quality INTEGER NOT NULL
+        self._conn = sqlite3.connect(db_path, check_same_thread=False)
+        self._lock = threading.Lock()
+        with self._lock:
+            self._conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pending_readings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    created_at TEXT NOT NULL,
+                    qcp_id INTEGER NOT NULL,
+                    value REAL NOT NULL,
+                    tag TEXT NOT NULL,
+                    quality INTEGER NOT NULL
+                )
+                """
             )
-            """
-        )
-        self._conn.commit()
+            self._conn.commit()
 
     def enqueue(self, reading: Reading) -> None:
-        self._conn.execute(
-            "INSERT INTO pending_readings (created_at, qcp_id, value, tag, quality) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (
-                datetime.now(timezone.utc).isoformat(),
-                reading.qcp_id,
-                reading.value,
-                reading.tag,
-                reading.quality,
-            ),
-        )
-        self._conn.commit()
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO pending_readings (created_at, qcp_id, value, tag, quality) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (
+                    datetime.now(timezone.utc).isoformat(),
+                    reading.qcp_id,
+                    reading.value,
+                    reading.tag,
+                    reading.quality,
+                ),
+            )
+            self._conn.commit()
 
     def pending(self) -> List[Tuple[int, Reading]]:
-        cursor = self._conn.execute(
-            "SELECT id, qcp_id, value, tag, quality FROM pending_readings ORDER BY id ASC"
-        )
+        with self._lock:
+            cursor = self._conn.execute(
+                "SELECT id, qcp_id, value, tag, quality FROM pending_readings ORDER BY id ASC"
+            )
+            rows = cursor.fetchall()
         return [
             (row[0], Reading(qcp_id=row[1], value=row[2], tag=row[3], quality=row[4]))
-            for row in cursor.fetchall()
+            for row in rows
         ]
 
     def remove(self, row_id: int) -> None:
-        self._conn.execute("DELETE FROM pending_readings WHERE id = ?", (row_id,))
-        self._conn.commit()
+        with self._lock:
+            self._conn.execute("DELETE FROM pending_readings WHERE id = ?", (row_id,))
+            self._conn.commit()
 
     def close(self) -> None:
-        self._conn.close()
+        with self._lock:
+            self._conn.close()
 
 
 if __name__ == "__main__":
