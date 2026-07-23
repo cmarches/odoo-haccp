@@ -168,5 +168,21 @@ def flush_buffer(buffer: Buffer, bridge_url: str, timeout: float) -> None:
         buffer.remove(row_id)
 
 
+def on_message(client, userdata, msg) -> None:
+    """Callback MQTT (signature paho: client, userdata, msg).
+    userdata doit etre {"buffer": Buffer(...)} (voir main())."""
+    try:
+        payload = json.loads(msg.payload.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        log.warning("Payload MQTT invalide sur %s: %s", msg.topic, e)
+        return
+    reading = parse_uplink(payload)
+    if reading is None:
+        log.debug("Uplink ignore (device/champ non mappe): %s", msg.topic)
+        return
+    userdata["buffer"].enqueue(reading)
+    log.info("Mesure mise en file: tag=%s value=%s", reading.tag, reading.value)
+
+
 if __name__ == "__main__":
     pass

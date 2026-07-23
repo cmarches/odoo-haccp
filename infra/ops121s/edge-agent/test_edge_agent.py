@@ -8,7 +8,7 @@ import unittest
 import urllib.error
 from unittest.mock import MagicMock, patch
 
-from edge_agent import Buffer, Reading, flush_buffer, forward_reading, parse_uplink
+from edge_agent import Buffer, Reading, flush_buffer, forward_reading, on_message, parse_uplink
 
 
 class TestParseUplink(unittest.TestCase):
@@ -241,6 +241,50 @@ class TestFlushBuffer(unittest.TestCase):
         with patch("edge_agent.forward_reading") as mock_forward:
             flush_buffer(self.buffer, "http://bridge/quality-check", timeout=5)
         mock_forward.assert_not_called()
+
+
+class TestOnMessage(unittest.TestCase):
+    def setUp(self):
+        fd, self.db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        self.buffer = Buffer(self.db_path)
+
+    def tearDown(self):
+        self.buffer.close()
+        os.remove(self.db_path)
+
+    @staticmethod
+    def _make_msg(topic, payload_dict=None, raw_payload=None):
+        msg = MagicMock()
+        msg.topic = topic
+        if raw_payload is not None:
+            msg.payload = raw_payload
+        else:
+            msg.payload = json.dumps(payload_dict).encode("utf-8")
+        return msg
+
+    def test_valid_uplink_enqueues_reading(self):
+        payload = {
+            "deviceInfo": {"deviceName": "lht65-frigo-positif"},
+            "object": {"temperature_1": 3.5, "humidity": 62.1, "battery_voltage": 3.6},
+        }
+        msg = self._make_msg("application/app1/device/xyz/event/up", payload)
+        on_message(MagicMock(), {"buffer": self.buffer}, msg)
+        pending = self.buffer.pending()
+        self.assertEqual(len(pending), 1)
+        self.assertEqual(pending[0][1].tag, "Frigo_Temperature")
+        self.assertEqual(pending[0][1].value, 3.5)
+
+    def test_unmapped_device_does_not_enqueue(self):
+        payload = {"deviceInfo": {"deviceName": "unknown-device"}, "object": {"temperature_1": 3.5}}
+        msg = self._make_msg("application/app1/device/xyz/event/up", payload)
+        on_message(MagicMock(), {"buffer": self.buffer}, msg)
+        self.assertEqual(self.buffer.pending(), [])
+
+    def test_invalid_json_does_not_raise_and_does_not_enqueue(self):
+        msg = self._make_msg("application/app1/device/xyz/event/up", raw_payload=b"not json")
+        on_message(MagicMock(), {"buffer": self.buffer}, msg)
+        self.assertEqual(self.buffer.pending(), [])
 
 
 if __name__ == "__main__":
