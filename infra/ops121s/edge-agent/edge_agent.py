@@ -134,5 +134,29 @@ class Buffer:
             self._conn.close()
 
 
+def forward_reading(reading: Reading, bridge_url: str, timeout: float) -> bool:
+    body = json.dumps(
+        {
+            "qcp_id": reading.qcp_id,
+            "value": reading.value,
+            "tag": reading.tag,
+            "quality": reading.quality,
+        }
+    ).encode("utf-8")
+    req = urllib.request.Request(
+        bridge_url, data=body, method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            ok = 200 <= resp.status < 300
+            if not ok:
+                log.warning("Bridge a repondu %s pour tag=%s", resp.status, reading.tag)
+            return ok
+    except (urllib.error.URLError, TimeoutError) as e:
+        log.warning("Echec envoi vers le bridge (tag=%s): %s", reading.tag, e)
+        return False
+
+
 if __name__ == "__main__":
     pass

@@ -1,10 +1,13 @@
 """Tests unitaires pour haccp-edge-agent (ChirpStack MQTT -> buffer -> bridge Odoo)."""
+import json
 import os
 import tempfile
 import threading
 import unittest
+import urllib.error
+from unittest.mock import MagicMock, patch
 
-from edge_agent import Buffer, Reading, parse_uplink
+from edge_agent import Buffer, Reading, forward_reading, parse_uplink
 
 
 class TestParseUplink(unittest.TestCase):
@@ -139,6 +142,50 @@ class TestBuffer(unittest.TestCase):
 
         self.assertEqual(errors, [])
         self.assertEqual(len(self.buffer.pending()), num_threads * writes_per_thread)
+
+
+class TestForwardReading(unittest.TestCase):
+    def test_success_returns_true(self):
+        reading = Reading(qcp_id=1, value=3.5, tag="Frigo_Temperature", quality=192)
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.__enter__.return_value = mock_response
+        with patch("edge_agent.urllib.request.urlopen", return_value=mock_response) as mock_urlopen:
+            result = forward_reading(reading, "http://127.0.0.1:5001/quality-check", timeout=5)
+        self.assertTrue(result)
+        mock_urlopen.assert_called_once()
+
+    def test_non_2xx_status_returns_false(self):
+        reading = Reading(qcp_id=1, value=3.5, tag="Frigo_Temperature", quality=192)
+        mock_response = MagicMock()
+        mock_response.status = 500
+        mock_response.__enter__.return_value = mock_response
+        with patch("edge_agent.urllib.request.urlopen", return_value=mock_response):
+            result = forward_reading(reading, "http://127.0.0.1:5001/quality-check", timeout=5)
+        self.assertFalse(result)
+
+    def test_connection_error_returns_false(self):
+        reading = Reading(qcp_id=1, value=3.5, tag="Frigo_Temperature", quality=192)
+        with patch(
+            "edge_agent.urllib.request.urlopen",
+            side_effect=urllib.error.URLError("connection refused"),
+        ):
+            result = forward_reading(reading, "http://127.0.0.1:5001/quality-check", timeout=5)
+        self.assertFalse(result)
+
+    def test_sends_expected_json_body(self):
+        reading = Reading(qcp_id=2, value=-18.0, tag="Congelateur_Temperature", quality=192)
+        mock_response = MagicMock()
+        mock_response.status = 200
+        mock_response.__enter__.return_value = mock_response
+        with patch("edge_agent.urllib.request.urlopen", return_value=mock_response) as mock_urlopen:
+            forward_reading(reading, "http://127.0.0.1:5001/quality-check", timeout=5)
+        sent_request = mock_urlopen.call_args[0][0]
+        body = json.loads(sent_request.data.decode("utf-8"))
+        self.assertEqual(
+            body,
+            {"qcp_id": 2, "value": -18.0, "tag": "Congelateur_Temperature", "quality": 192},
+        )
 
 
 if __name__ == "__main__":
