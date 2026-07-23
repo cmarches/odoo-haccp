@@ -161,16 +161,34 @@ def forward_reading(reading: Reading, bridge_url: str, timeout: float) -> bool:
 
 def flush_buffer(buffer: Buffer, bridge_url: str, timeout: float) -> None:
     """Envoie les mesures en attente dans l'ordre, s'arrete au premier echec
-    pour preserver l'ordre et eviter de marteler un backend indisponible."""
-    for row_id, reading in buffer.pending():
+    pour preserver l'ordre et eviter de marteler un backend indisponible.
+
+    Une erreur SQLite (disque plein, "database is locked", etc.) sur le
+    buffer lui-meme interrompt proprement le cycle de flush courant plutot
+    que de remonter et faire planter la boucle principale de main()."""
+    try:
+        rows = buffer.pending()
+    except sqlite3.Error as e:
+        log.warning("Erreur SQLite lors de la lecture du buffer, flush annule: %s", e)
+        return
+    for row_id, reading in rows:
         if not forward_reading(reading, bridge_url, timeout):
             break
-        buffer.remove(row_id)
+        try:
+            buffer.remove(row_id)
+        except sqlite3.Error as e:
+            log.warning("Erreur SQLite lors de la suppression de la mesure envoyee, flush arrete: %s", e)
+            return
 
 
 def on_message(client, userdata, msg) -> None:
     """Callback MQTT (signature paho: client, userdata, msg).
-    userdata doit etre {"buffer": Buffer(...)} (voir main())."""
+    userdata doit etre {"buffer": Buffer(...)} (voir main()). Se degrade
+    gracieusement (log + return, sans jamais lever) si "buffer" est absent
+    de userdata ou si l'ecriture dans le buffer SQLite echoue (disque plein,
+    "database is locked", etc.) : ce callback tourne dans le thread reseau
+    paho-mqtt, ou une exception non interceptee serait silencieusement
+    avalee (voir _easy_log de paho, no-op sans enable_logger())."""
     try:
         payload = json.loads(msg.payload.decode("utf-8"))
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
@@ -184,7 +202,11 @@ def on_message(client, userdata, msg) -> None:
     if buffer is None:
         log.error("on_message appele sans buffer dans userdata — impossible d'enqueuer la mesure")
         return
-    buffer.enqueue(reading)
+    try:
+        buffer.enqueue(reading)
+    except sqlite3.Error as e:
+        log.warning("Erreur SQLite lors de la mise en file (tag=%s): %s", reading.tag, e)
+        return
     log.info("Mesure mise en file: tag=%s value=%s", reading.tag, reading.value)
 
 

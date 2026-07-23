@@ -2,6 +2,7 @@
 import http.client
 import json
 import os
+import sqlite3
 import tempfile
 import threading
 import unittest
@@ -242,6 +243,10 @@ class TestFlushBuffer(unittest.TestCase):
             flush_buffer(self.buffer, "http://bridge/quality-check", timeout=5)
         mock_forward.assert_not_called()
 
+    def test_sqlite_error_on_pending_does_not_raise(self):
+        with patch.object(self.buffer, "pending", side_effect=sqlite3.Error("database is locked")):
+            flush_buffer(self.buffer, "http://bridge/quality-check", timeout=5)
+
 
 class TestOnMessage(unittest.TestCase):
     def setUp(self):
@@ -293,6 +298,15 @@ class TestOnMessage(unittest.TestCase):
         }
         msg = self._make_msg("application/app1/device/xyz/event/up", payload)
         on_message(MagicMock(), {}, msg)
+
+    def test_sqlite_error_on_enqueue_does_not_raise(self):
+        payload = {
+            "deviceInfo": {"deviceName": "lht65-frigo-positif"},
+            "object": {"temperature_1": 3.5},
+        }
+        msg = self._make_msg("application/app1/device/xyz/event/up", payload)
+        with patch.object(self.buffer, "enqueue", side_effect=sqlite3.Error("disk full")):
+            on_message(MagicMock(), {"buffer": self.buffer}, msg)
 
 
 if __name__ == "__main__":
