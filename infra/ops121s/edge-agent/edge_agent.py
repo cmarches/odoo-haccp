@@ -205,6 +205,9 @@ def main() -> None:
     topic = f"application/{application_id}/device/+/event/up"
 
     def _on_connect(client, userdata, flags, rc):
+        if rc != 0:
+            log.error("Echec connexion MQTT %s:%s (rc=%s)", mqtt_host, mqtt_port, rc)
+            return
         log.info("Connecte au broker MQTT %s:%s (rc=%s) — souscription %s", mqtt_host, mqtt_port, rc, topic)
         client.subscribe(topic)
 
