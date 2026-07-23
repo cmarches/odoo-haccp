@@ -188,5 +188,47 @@ def on_message(client, userdata, msg) -> None:
     log.info("Mesure mise en file: tag=%s value=%s", reading.tag, reading.value)
 
 
+def main() -> None:
+    import paho.mqtt.client as mqtt  # import local : garde le reste du module testable sans paho
+
+    mqtt_host = os.environ.get("MQTT_HOST", "127.0.0.1")
+    mqtt_port = int(os.environ.get("MQTT_PORT", "1883"))
+    application_id = os.environ.get("CHIRPSTACK_APPLICATION_ID", "")
+    if not application_id:
+        raise SystemExit("CHIRPSTACK_APPLICATION_ID environment variable is required")
+    bridge_url = os.environ.get("ODOO_BRIDGE_URL", "http://127.0.0.1:5001/quality-check")
+    buffer_db_path = os.environ.get("BUFFER_DB_PATH", "buffer.db")
+    flush_interval = float(os.environ.get("FLUSH_INTERVAL_SECONDS", "10"))
+    http_timeout = float(os.environ.get("HTTP_TIMEOUT_SECONDS", "10"))
+
+    buffer = Buffer(buffer_db_path)
+    topic = f"application/{application_id}/device/+/event/up"
+
+    def _on_connect(client, userdata, flags, rc):
+        log.info("Connecte au broker MQTT %s:%s (rc=%s) — souscription %s", mqtt_host, mqtt_port, rc, topic)
+        client.subscribe(topic)
+
+    client = mqtt.Client(userdata={"buffer": buffer})
+    client.enable_logger(log)
+    client.on_connect = _on_connect
+    client.on_message = on_message
+    client.connect(mqtt_host, mqtt_port)
+    client.loop_start()
+
+    log.info(
+        "haccp-edge-agent demarre — MQTT %s:%s, bridge %s, buffer %s",
+        mqtt_host, mqtt_port, bridge_url, buffer_db_path,
+    )
+    try:
+        while True:
+            flush_buffer(buffer, bridge_url, http_timeout)
+            time.sleep(flush_interval)
+    except KeyboardInterrupt:
+        log.info("Arret demande")
+    finally:
+        client.loop_stop()
+        buffer.close()
+
+
 if __name__ == "__main__":
-    pass
+    main()
