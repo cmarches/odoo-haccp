@@ -67,5 +67,55 @@ def parse_uplink(payload: dict) -> Optional[Reading]:
         return None
 
 
+class Buffer:
+    """File d'attente locale persistante (SQLite) pour les mesures a relayer."""
+
+    def __init__(self, db_path: str):
+        self._conn = sqlite3.connect(db_path)
+        self._conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pending_readings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                qcp_id INTEGER NOT NULL,
+                value REAL NOT NULL,
+                tag TEXT NOT NULL,
+                quality INTEGER NOT NULL
+            )
+            """
+        )
+        self._conn.commit()
+
+    def enqueue(self, reading: Reading) -> None:
+        self._conn.execute(
+            "INSERT INTO pending_readings (created_at, qcp_id, value, tag, quality) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (
+                datetime.now(timezone.utc).isoformat(),
+                reading.qcp_id,
+                reading.value,
+                reading.tag,
+                reading.quality,
+            ),
+        )
+        self._conn.commit()
+
+    def pending(self) -> List[Tuple[int, Reading]]:
+        cursor = self._conn.execute(
+            "SELECT id, qcp_id, value, tag, quality FROM pending_readings ORDER BY id ASC"
+        )
+        return [
+            (row[0], Reading(qcp_id=row[1], value=row[2], tag=row[3], quality=row[4]))
+            for row in cursor.fetchall()
+        ]
+
+    def remove(self, row_id: int) -> None:
+        self._conn.execute("DELETE FROM pending_readings WHERE id = ?", (row_id,))
+        self._conn.commit()
+
+    def close(self) -> None:
+        self._conn.close()
+
+
 if __name__ == "__main__":
     pass

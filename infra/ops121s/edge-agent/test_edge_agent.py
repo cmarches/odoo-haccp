@@ -1,7 +1,9 @@
 """Tests unitaires pour haccp-edge-agent (ChirpStack MQTT -> buffer -> bridge Odoo)."""
+import os
+import tempfile
 import unittest
 
-from edge_agent import Reading, parse_uplink
+from edge_agent import Buffer, Reading, parse_uplink
 
 
 class TestParseUplink(unittest.TestCase):
@@ -71,6 +73,48 @@ class TestParseUplink(unittest.TestCase):
             "object": {"temperature_1": "N/A"},
         }
         self.assertIsNone(parse_uplink(payload))
+
+
+class TestBuffer(unittest.TestCase):
+    def setUp(self):
+        fd, self.db_path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        self.buffer = Buffer(self.db_path)
+
+    def tearDown(self):
+        self.buffer.close()
+        os.remove(self.db_path)
+
+    def test_enqueue_then_pending_returns_reading(self):
+        reading = Reading(qcp_id=1, value=3.5, tag="Frigo_Temperature", quality=192)
+        self.buffer.enqueue(reading)
+        pending = self.buffer.pending()
+        self.assertEqual(len(pending), 1)
+        _row_id, got = pending[0]
+        self.assertEqual(got, reading)
+
+    def test_remove_deletes_row(self):
+        reading = Reading(qcp_id=1, value=3.5, tag="Frigo_Temperature", quality=192)
+        self.buffer.enqueue(reading)
+        row_id, _ = self.buffer.pending()[0]
+        self.buffer.remove(row_id)
+        self.assertEqual(self.buffer.pending(), [])
+
+    def test_pending_preserves_insertion_order(self):
+        self.buffer.enqueue(Reading(qcp_id=1, value=1.0, tag="Frigo_Temperature", quality=192))
+        self.buffer.enqueue(Reading(qcp_id=2, value=2.0, tag="Congelateur_Temperature", quality=192))
+        pending = self.buffer.pending()
+        self.assertEqual(
+            [r.tag for _row_id, r in pending],
+            ["Frigo_Temperature", "Congelateur_Temperature"],
+        )
+
+    def test_reopening_same_db_path_preserves_pending_rows(self):
+        self.buffer.enqueue(Reading(qcp_id=1, value=1.0, tag="Frigo_Temperature", quality=192))
+        self.buffer.close()
+        reopened = Buffer(self.db_path)
+        self.assertEqual(len(reopened.pending()), 1)
+        reopened.close()
 
 
 if __name__ == "__main__":
