@@ -1,4 +1,5 @@
 """Tests unitaires pour haccp-edge-agent (ChirpStack MQTT -> buffer -> bridge Odoo)."""
+import http.client
 import json
 import os
 import tempfile
@@ -186,6 +187,28 @@ class TestForwardReading(unittest.TestCase):
             body,
             {"qcp_id": 2, "value": -18.0, "tag": "Congelateur_Temperature", "quality": 192},
         )
+
+    def test_remote_disconnected_returns_false(self):
+        reading = Reading(qcp_id=1, value=3.5, tag="Frigo_Temperature", quality=192)
+        with patch(
+            "edge_agent.urllib.request.urlopen",
+            side_effect=http.client.RemoteDisconnected(
+                "Remote end closed connection without response"
+            ),
+        ):
+            result = forward_reading(reading, "http://127.0.0.1:5001/quality-check", timeout=5)
+        self.assertFalse(result)
+
+    def test_http_error_returns_false(self):
+        reading = Reading(qcp_id=1, value=3.5, tag="Frigo_Temperature", quality=192)
+        with patch(
+            "edge_agent.urllib.request.urlopen",
+            side_effect=urllib.error.HTTPError(
+                url="http://x", code=500, msg="Internal Server Error", hdrs={}, fp=None
+            ),
+        ):
+            result = forward_reading(reading, "http://127.0.0.1:5001/quality-check", timeout=5)
+        self.assertFalse(result)
 
 
 if __name__ == "__main__":

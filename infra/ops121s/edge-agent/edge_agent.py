@@ -7,6 +7,7 @@ Remplace vNode (MqttClient + RestApiClient) sur l'edge. Ne modifie pas
 le contrat de haccp-odoo-bridge : POST /quality-check,
 body {"qcp_id": int, "value": float, "tag": str, "quality": int}.
 """
+import http.client
 import json
 import logging
 import os
@@ -153,7 +154,7 @@ def forward_reading(reading: Reading, bridge_url: str, timeout: float) -> bool:
             if not ok:
                 log.warning("Bridge a repondu %s pour tag=%s", resp.status, reading.tag)
             return ok
-    except (urllib.error.URLError, TimeoutError) as e:
+    except (urllib.error.URLError, TimeoutError, http.client.HTTPException) as e:
         log.warning("Echec envoi vers le bridge (tag=%s): %s", reading.tag, e)
         return False
 
