@@ -55,5 +55,14 @@ class TestMainMissingArgs(unittest.TestCase):
         self.assertIn("ERREUR", stderr.getvalue())
 
 
+class TestMqttPortFromEnv(unittest.TestCase):
+    def test_invalid_mqtt_port_env_falls_back_to_default(self):
+        stderr = io.StringIO()
+        with patch.dict("os.environ", {"MQTT_PORT": "not-a-number"}), patch("sys.stderr", stderr):
+            code = demo.main(["--list-devices"])
+        self.assertEqual(code, 0)
+        self.assertIn("AVERTISSEMENT", stderr.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()

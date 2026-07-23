@@ -45,6 +45,18 @@ def build_uplink_payload(device_id, field, value):
     }
 
 
+def _mqtt_port_from_env():
+    raw = os.environ.get("MQTT_PORT", "1883")
+    try:
+        return int(raw)
+    except ValueError:
+        print(
+            f"AVERTISSEMENT : MQTT_PORT invalide ({raw!r}), utilisation du port 1883 par defaut",
+            file=sys.stderr,
+        )
+        return 1883
+
+
 def print_list_devices():
     print("Devices connus :")
     for device_id, info in KNOWN_DEVICES.items():
@@ -82,7 +94,7 @@ def parse_args(argv):
         "--mqtt-port",
         dest="mqtt_port",
         type=int,
-        default=int(os.environ.get("MQTT_PORT", "1883")),
+        default=_mqtt_port_from_env(),
         help="Port du broker MQTT (defaut: variable MQTT_PORT ou 1883)",
     )
     parser.add_argument(
