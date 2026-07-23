@@ -53,15 +53,18 @@ class Reading:
 
 
 def parse_uplink(payload: dict) -> Optional[Reading]:
-    device_name = payload.get("deviceInfo", {}).get("deviceName")
-    mapping = DEVICE_QCP_MAP.get(device_name)
-    if mapping is None:
+    try:
+        device_name = payload.get("deviceInfo", {}).get("deviceName")
+        mapping = DEVICE_QCP_MAP.get(device_name)
+        if mapping is None:
+            return None
+        obj = payload.get("object") or {}
+        value = obj.get(mapping["field"])
+        if value is None:
+            return None
+        return Reading(qcp_id=mapping["qcp_id"], value=float(value), tag=mapping["tag"])
+    except (AttributeError, TypeError, ValueError):
         return None
-    obj = payload.get("object") or {}
-    value = obj.get(mapping["field"])
-    if value is None:
-        return None
-    return Reading(qcp_id=mapping["qcp_id"], value=float(value), tag=mapping["tag"])
 
 
 if __name__ == "__main__":

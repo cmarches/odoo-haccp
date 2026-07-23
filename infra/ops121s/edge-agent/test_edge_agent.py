@@ -58,6 +58,20 @@ class TestParseUplink(unittest.TestCase):
     def test_missing_object_returns_none(self):
         self.assertIsNone(parse_uplink({"deviceInfo": {"deviceName": "lht65-frigo-positif"}}))
 
+    def test_non_dict_device_info_returns_none(self):
+        payload = {
+            "deviceInfo": None,
+            "object": {"temperature_1": 3.5},
+        }
+        self.assertIsNone(parse_uplink(payload))
+
+    def test_non_numeric_value_returns_none(self):
+        payload = {
+            "deviceInfo": {"deviceName": "lht65-frigo-positif"},
+            "object": {"temperature_1": "N/A"},
+        }
+        self.assertIsNone(parse_uplink(payload))
+
 
 if __name__ == "__main__":
     unittest.main()
