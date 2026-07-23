@@ -44,6 +44,67 @@ services:
     networks:
       - haccp-net
 
+  postgres:
+    image: postgres:14-alpine
+    container_name: haccp-chirpstack-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=chirpstack
+      - POSTGRES_USER=chirpstack
+      - POSTGRES_PASSWORD=${CHIRPSTACK_POSTGRES_PASSWORD}
+    volumes:
+      - chirpstack_postgres_data:/var/lib/postgresql/data
+    networks:
+      - haccp-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: haccp-chirpstack-redis
+    restart: unless-stopped
+    volumes:
+      - chirpstack_redis_data:/data
+    networks:
+      - haccp-net
+
+  # ChirpStack tourne en local sur l'edge (pas sur un VPS, pas TTN) : voir
+  # docs/superpowers/specs/2026-07-22-architecture-sans-vnode-design.md §6.
+  # Fichiers de config .toml a completer avant premier demarrage — voir
+  # infra/ops121s/chirpstack/config/README.md
+  chirpstack:
+    image: chirpstack/chirpstack:4
+    container_name: haccp-chirpstack
+    restart: unless-stopped
+    command: -c /etc/chirpstack
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./chirpstack/config:/etc/chirpstack
+    depends_on:
+      - postgres
+      - redis
+      - mosquitto
+    networks:
+      - haccp-net
+
+  # Traduit le protocole des gateways LoRaWAN physiques (Semtech UDP / Basic
+  # Station) en evenements MQTT pour ChirpStack. Pas encore exerce par la
+  # demo (scripts/demo-simulate-sensor-chirpstack.py publie directement sur
+  # le topic MQTT final, en contournant ce service) — necessaire seulement
+  # le jour ou un vrai gateway LoRaWAN (RAK7268 ou equivalent) est branche.
+  chirpstack-gateway-bridge:
+    image: chirpstack/chirpstack-gateway-bridge:4
+    container_name: haccp-chirpstack-gateway-bridge
+    restart: unless-stopped
+    command: -c /etc/chirpstack-gateway-bridge
+    ports:
+      - "1700:1700/udp"
+    volumes:
+      - ./chirpstack/gateway-bridge-config:/etc/chirpstack-gateway-bridge
+    depends_on:
+      - mosquitto
+    networks:
+      - haccp-net
+
   # vNode est installé en natif via tarball Vester (vnode-setup-1.22.3-x86_64-linux-gnu.tar.gz)
   # et géré par systemd (sudo systemctl status vnode).
   # Ne pas dockeriser — la licence est liée au MAC de l'interface physique.
@@ -57,3 +118,5 @@ volumes:
   mosquitto_log:
   influxdb_data:
   portainer_data:
+  chirpstack_postgres_data:
+  chirpstack_redis_data:
