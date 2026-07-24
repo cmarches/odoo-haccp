@@ -1,5 +1,5 @@
 {
-  "version": "2026-05-23",
+  "version": "2026-07-24",
   "documents": [
     {
       "name": "fiche-temperatures-positives",
@@ -63,34 +63,6 @@
       "description": "Procédure en cas de coupure de courant sur les équipements frigorifiques",
       "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-affiche-coupure-electrique.pdf",
       "hash": "e832efd6481a7b7a26e6ca95b9cfb319"
-    },
-    {
-      "name": "decret-0043-2024",
-      "category": "reglementation",
-      "description": "Décret relatif aux normes sanitaires en restauration collective",
-      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-decret-0043-2024.pdf",
-      "hash": "7b1dd972bd2f6c585deab0365a4b2c5c"
-    },
-    {
-      "name": "reglement-ce-178-2002",
-      "category": "reglementation",
-      "description": "Principes généraux et exigences de la législation alimentaire",
-      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-reglement-ce-178-2002.pdf",
-      "hash": "cdc265275a48ccfc832ff81627323cfa"
-    },
-    {
-      "name": "reglement-ce-852-2004",
-      "category": "reglementation",
-      "description": "Hygiène des denrées alimentaires — exigences HACCP",
-      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-reglement-ce-852-2004.pdf",
-      "hash": "84fce3b29beec41ceeb195f4fa566226"
-    },
-    {
-      "name": "cerfa-12211-02",
-      "category": "reglementation",
-      "description": "Déclaration d'établissement auprès des services vétérinaires",
-      "url": "http://192.168.1.182:8029/haccp_report/static/haccp/AIFD-cerfa-12211-02.pdf",
-      "hash": "c9958b350d99d1f82f1aa46ddeba4019"
     },
     {
       "name": "hygiene-3",
