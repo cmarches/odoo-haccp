@@ -5,17 +5,17 @@
       <t t-foreach="docs" t-as="o">
         <t t-call="web.external_layout">
 
-          <div class="page" style="font-family: Arial, sans-serif; font-size: 11px; color: #111;">
+          <div class="page" style="font-family: Arial, sans-serif; font-size: 15px; color: #111;">
 
             <style>
               .haccp-section-title {
-                font-size: 10px; font-weight: bold; color: #1a5276;
+                font-size: 14px; font-weight: bold; color: #1a5276;
                 text-transform: uppercase; letter-spacing: 0.5px;
                 border-left: 3px solid #1a5276; padding-left: 8px;
                 margin: 16px 0 8px 0;
               }
               .haccp-section-title.alert { border-left-color: #c0392b; color: #c0392b; }
-              .haccp-table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px; table-layout: fixed; }
+              .haccp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 8px; table-layout: fixed; }
               .haccp-table th {
                 background-color: #1a5276; color: #fff;
                 padding: 5px 8px; text-align: left; word-wrap: break-word;
@@ -30,8 +30,8 @@
               .rate-red { color: #c0392b; font-weight: bold; }
               .total-row td { background-color: #e8f0fe !important; font-weight: bold; }
               .section-break { page-break-before: always; }
-              .legal-note { font-size: 8px; color: #888; font-style: italic; margin-top: 6px; }
-              .alert-table { width: 100%; table-layout: fixed; border-collapse: collapse; border: 1px solid #f5b7b1; background: #fdf8f8; margin-bottom: 8px; font-size: 9px; }
+              .legal-note { font-size: 11px; color: #888; font-style: italic; margin-top: 6px; }
+              .alert-table { width: 100%; table-layout: fixed; border-collapse: collapse; border: 1px solid #f5b7b1; background: #fdf8f8; margin-bottom: 8px; font-size: 12px; }
               .alert-table td { padding: 5px 8px; word-wrap: break-word; vertical-align: top; }
             </style>
 
@@ -42,18 +42,18 @@
               <colgroup><col style="width:58%;"/><col style="width:42%;"/></colgroup>
               <tr>
                 <td style="vertical-align:middle; padding:10px 14px;">
-                  <div style="font-size:11px; font-weight:bold; color:#1a5276; text-transform:uppercase; letter-spacing:0.5px;">
+                  <div style="font-size:15px; font-weight:bold; color:#1a5276; text-transform:uppercase; letter-spacing:0.5px;">
                     Rapport de surveillance HACCP
                   </div>
-                  <div style="font-size:9px; color:#333; margin-top:5px;">
+                  <div style="font-size:12px; color:#333; margin-top:5px;">
                     Responsable qualité : <strong><t t-esc="o.responsible_id.name"/></strong>
                   </div>
                 </td>
                 <td style="text-align:right; vertical-align:middle; padding:10px 14px;">
-                  <div style="background:#1a5276; color:#fff; padding:6px 14px; font-weight:bold; font-size:11px; white-space:nowrap;">
+                  <div style="background:#1a5276; color:#fff; padding:6px 14px; font-weight:bold; font-size:15px; white-space:nowrap;">
                     <t t-esc="o.date_start.strftime('%d/%m/%Y')"/> – <t t-esc="o.date_end.strftime('%d/%m/%Y')"/>
                   </div>
-                  <div style="font-size:9px; color:#555; margin-top:5px; white-space:nowrap;">
+                  <div style="font-size:12px; color:#555; margin-top:5px; white-space:nowrap;">
                     Édité le <t t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y à %H:%M')"/>
                   </div>
                 </td>
@@ -94,7 +94,7 @@
                       ≤ <t t-esc="stat['point'].tolerance_max"/> <t t-esc="stat['point'].norm_unit"/>
                     </td>
                     <td style="text-align:center;"><t t-esc="stat['frequency']"/></td>
-                    <td style="font-size:8.5px;">
+                    <td style="font-size:12px;">
                       <t t-if="stat['point'].failure_message">
                         <t t-esc="stat['point'].failure_message"/>
                       </t>
@@ -223,7 +223,7 @@
                  ═══════════════════════════════════════════════════ -->
             <div class="haccp-section-title section-break alert">Non-conformités et actions correctives</div>
             <t t-if="not alerts">
-              <div style="padding:10px; background:#f0f9f0; border:1px solid #c8e6c9; font-size:10px; color:#1a7a1a;">
+              <div style="padding:10px; background:#f0f9f0; border:1px solid #c8e6c9; font-size:14px; color:#1a7a1a;">
                 Aucune non-conformité enregistrée sur la période.
               </div>
             </t>
@@ -278,7 +278,7 @@
                     </td>
                   </tr>
                   <tr>
-                    <td colspan="2" style="color:#888; font-size:8.5px; padding-top:3px;">
+                    <td colspan="2" style="color:#888; font-size:12px; padding-top:3px;">
                       Responsable : <t t-esc="alert.user_id.name if alert.user_id else 'Non assigné'"/>
                     </td>
                   </tr>
@@ -290,7 +290,7 @@
                  SECTION 5 — SIGNATURE
                  ═══════════════════════════════════════════════════ -->
             <div style="break-before:page; page-break-before:always; display:block; padding-top:20px; border-top:1px solid #ddd;">
-              <table style="width:100%; font-size:9px; border-collapse:collapse; table-layout:fixed;">
+              <table style="width:100%; font-size:12px; border-collapse:collapse; table-layout:fixed;">
                 <colgroup><col style="width:58%;"/><col style="width:42%;"/></colgroup>
                 <tr>
                   <td style="vertical-align:bottom; color:#888; padding-right:12px;">
