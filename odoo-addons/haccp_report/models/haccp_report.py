@@ -5,7 +5,7 @@ from odoo.tools.translate import _
 
 class HaccpReport(models.Model):
     _name = 'haccp.report'
-    _description = 'Rapport HACCP DDPP'
+    _description = 'Rapport HACCP'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'date_start desc'
 
@@ -57,7 +57,7 @@ class HaccpReport(models.Model):
             if rec.date_start and rec.date_end:
                 start = rec.date_start.strftime('%d/%m/%Y')
                 end = rec.date_end.strftime('%d/%m/%Y')
-                rec.name = f'Rapport HACCP DDPP – {start} → {end}'
+                rec.name = f'Rapport HACCP – {start} → {end}'
             else:
                 rec.name = _('Nouveau rapport HACCP')
 

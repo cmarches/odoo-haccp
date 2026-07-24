@@ -6,7 +6,7 @@
     <field name="name">haccp.report.form</field>
     <field name="model">haccp.report</field>
     <field name="arch" type="xml">
-      <form string="Rapport HACCP DDPP">
+      <form string="Rapport HACCP">
 
         <!-- Status bar -->
         <header>
@@ -74,7 +74,7 @@
     <field name="name">haccp.report.list</field>
     <field name="model">haccp.report</field>
     <field name="arch" type="xml">
-      <list string="Rapports HACCP DDPP" default_order="date_start desc">
+      <list string="Rapports HACCP" default_order="date_start desc">
         <field name="name"/>
         <field name="date_start"/>
         <field name="date_end"/>
@@ -90,13 +90,13 @@
 
   <!-- ── Action window ─────────────────────────────────────────────── -->
   <record id="action_haccp_report" model="ir.actions.act_window">
-    <field name="name">Rapports HACCP DDPP</field>
+    <field name="name">Rapports HACCP</field>
     <field name="res_model">haccp.report</field>
     <field name="view_mode">list,form</field>
     <field name="context">{'default_responsible_id': uid}</field>
     <field name="help" type="html">
       <p class="o_view_nocontent_smiling_face">
-        Créez votre premier rapport HACCP DDPP
+        Créez votre premier rapport HACCP
       </p>
       <p>
         Définissez une période, puis générez le rapport PDF réglementaire.

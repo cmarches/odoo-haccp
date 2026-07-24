@@ -242,7 +242,7 @@ class TestHaccpReport(TransactionCase):
         end_str = self.date_end.strftime('%d/%m/%Y')
         self.assertEqual(
             report.name,
-            f'Rapport HACCP DDPP – {start_str} → {end_str}',
+            f'Rapport HACCP – {start_str} → {end_str}',
         )
 
     def test_check_count(self):

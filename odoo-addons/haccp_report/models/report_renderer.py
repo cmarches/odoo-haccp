@@ -5,14 +5,14 @@ from odoo import models
 
 class ReportHaccpDdpp(models.AbstractModel):
     _name = 'report.haccp_report.report_haccp_ddpp'
-    _description = 'Renderer rapport HACCP DDPP'
+    _description = 'Renderer rapport HACCP'
 
     # -------------------------------------------------------------------------
     # Public API (called by Odoo report engine + tests)
     # -------------------------------------------------------------------------
 
     def _get_report_values(self, docids, data=None):
-        """Return the template context dict for the HACCP DDPP report.
+        """Return the template context dict for the HACCP report.
 
         Parameters
         ----------

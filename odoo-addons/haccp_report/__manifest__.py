@@ -1,7 +1,7 @@
 {
-    'name': 'Rapport HACCP DDPP',
+    'name': 'Rapport HACCP',
     'version': '19.0.1.0.0',
-    'summary': 'Rapport PDF réglementaire HACCP pour contrôles DDPP',
+    'summary': 'Rapport PDF réglementaire HACCP pour contrôles sanitaires',
     'category': 'Quality',
     'author': 'AIFluence Digital',
     'depends': ['quality_control', 'web', 'mail', 'portal'],
