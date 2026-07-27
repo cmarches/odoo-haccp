@@ -292,11 +292,11 @@
               <table style="width:100%; font-size:12px; border-collapse:collapse; table-layout:fixed;">
                 <colgroup><col style="width:58%;"/><col style="width:42%;"/></colgroup>
                 <tr>
-                  <td style="vertical-align:bottom; color:#888; padding-right:12px;">
+                  <td style="vertical-align:bottom; color:#888; padding:10px;">
                     <div><t t-esc="legal_note['archive']"/></div>
                     <div>Généré par Odoo 19 — AIFluence Digital</div>
                   </td>
-                  <td style="text-align:center; vertical-align:bottom;">
+                  <td style="text-align:center; vertical-align:bottom; padding:10px;">
                     <div style="border:1px solid #ccc; height:45px; margin-bottom:4px;"></div>
                     <div>
                       <t t-esc="o.responsible_id.name"/> — <t t-esc="o.date_end.strftime('%d/%m/%Y')"/>
