@@ -2,6 +2,29 @@ from statistics import median
 
 from odoo import models
 
+# Références légales HACCP/autocontrôle par pays (code ISO2 de res.country).
+# 'default' s'applique à tout pays non listé ici (pas de citation inventée).
+_LEGAL_NOTES_BY_COUNTRY = {
+    'FR': {
+        'compliance': "Seuils conformes à l'Arrêté du 21/12/2009 et au Règlement CE 852/2004 (Article 5).",
+        'archive': "Archivage obligatoire 3 ans — Art. 5 Règlement CE 852/2004",
+    },
+    'CH': {
+        'compliance': (
+            "Autocontrôle conforme à la LDAl (RS 817.0, art. 26), à l'ODAlOUs "
+            "(RS 817.02, art. 73–85) et à l'Ordonnance du DFI sur l'hygiène (OHyg, RS 817.024.1)."
+        ),
+        'archive': (
+            "Conservation des documents d'autocontrôle selon le Guide de bonnes pratiques "
+            "GastroSuisse / HotellerieSuisse (validé OSAV)."
+        ),
+    },
+    'default': {
+        'compliance': "Surveillance HACCP conforme aux exigences réglementaires locales en matière de sécurité alimentaire.",
+        'archive': "Conservation des documents selon la réglementation locale en vigueur.",
+    },
+}
+
 
 class ReportHaccpDdpp(models.AbstractModel):
     _name = 'report.haccp_report.report_haccp_ddpp'
@@ -133,6 +156,7 @@ class ReportHaccpDdpp(models.AbstractModel):
             'total_checks': total_checks,
             'total_alerts': total_alerts,
             'global_rate': global_rate,
+            'legal_note': self._get_legal_note(report.company_id),
         }
 
     # -------------------------------------------------------------------------
@@ -161,6 +185,11 @@ class ReportHaccpDdpp(models.AbstractModel):
                 best_score = score
                 best_pid = point.id
         return best_pid if best_score > 0 else None
+
+    def _get_legal_note(self, company):
+        """Return the {'compliance', 'archive'} legal reference texts for the report's country."""
+        code = company.country_id.code
+        return _LEGAL_NOTES_BY_COUNTRY.get(code, _LEGAL_NOTES_BY_COUNTRY['default'])
 
     def _compute_frequency(self, checks):
         """Compute human-readable frequency from median interval between consecutive checks."""

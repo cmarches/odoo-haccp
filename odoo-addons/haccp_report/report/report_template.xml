@@ -105,8 +105,7 @@
               </tbody>
             </table>
             <div class="legal-note">
-              Surveillance automatique 24h/24 par capteurs LoRaWAN — Seuils conformes à l'Arrêté du 21/12/2009
-              et au Règlement CE 852/2004 (Article 5).
+              Surveillance automatique 24h/24 par capteurs LoRaWAN — <t t-esc="legal_note['compliance']"/>
             </div>
 
             <!-- ═══════════════════════════════════════════════════
@@ -294,7 +293,7 @@
                 <colgroup><col style="width:58%;"/><col style="width:42%;"/></colgroup>
                 <tr>
                   <td style="vertical-align:bottom; color:#888; padding-right:12px;">
-                    <div>Archivage obligatoire 3 ans — Art. 5 Règlement CE 852/2004</div>
+                    <div><t t-esc="legal_note['archive']"/></div>
                     <div>Généré par Odoo 19 — AIFluence Digital</div>
                   </td>
                   <td style="text-align:center; vertical-align:bottom;">
