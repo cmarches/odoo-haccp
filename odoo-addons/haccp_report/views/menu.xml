@@ -73,5 +73,13 @@
       action="action_haccp_document"
       groups="quality.group_quality_user"
       sequence="30"/>
+
+    <menuitem
+      id="menu_haccp_configuration"
+      name="Configuration"
+      parent="menu_haccp_reports_root"
+      action="action_haccp_config_settings"
+      groups="quality.group_quality_manager"
+      sequence="40"/>
   </data>
 </odoo>

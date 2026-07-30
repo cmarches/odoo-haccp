@@ -15,6 +15,7 @@
         'views/haccp_calculs_views.xml',
         'views/haccp_document_views.xml',
         'views/haccp_portal_templates.xml',
+        'views/res_config_settings_views.xml',
         'views/menu.xml',
         'views/quality_inherit.xml',
     ],

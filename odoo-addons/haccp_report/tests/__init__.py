@@ -5,3 +5,4 @@ from . import test_haccp_dlc_ouverture
 from . import test_haccp_dlc_ouverture_security
 from . import test_zpl_printer
 from . import test_haccp_portal_controller
+from . import test_res_config_settings

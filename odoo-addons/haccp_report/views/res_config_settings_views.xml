@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <record id="view_haccp_config_settings_form" model="ir.ui.view">
+    <field name="name">haccp.config.settings.form</field>
+    <field name="model">res.config.settings</field>
+    <field name="priority">100</field>
+    <field name="arch" type="xml">
+      <form string="Configuration HACCP">
+        <header>
+          <button string="Enregistrer" type="object" name="execute" class="oe_highlight"/>
+        </header>
+        <sheet>
+          <group string="DLC / Étiquettes">
+            <field name="haccp_use_native_expiry"/>
+            <field name="haccp_product_expiry_installed" invisible="1"/>
+            <div class="alert alert-warning" role="alert"
+                 invisible="haccp_product_expiry_installed">
+              Le module "Dates de péremption" (product_expiry) n'est pas installé.
+              Installez-le pour que cette option prenne effet.
+            </div>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_haccp_config_settings" model="ir.actions.act_window">
+    <field name="name">Configuration</field>
+    <field name="res_model">res.config.settings</field>
+    <field name="view_mode">form</field>
+    <field name="target">current</field>
+    <field name="view_id" ref="view_haccp_config_settings_form"/>
+  </record>
+</odoo>
