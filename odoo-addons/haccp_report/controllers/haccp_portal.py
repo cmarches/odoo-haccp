@@ -173,6 +173,8 @@ class HaccpPortalController(http.Controller):
             duree_jours=record.duree_jours,
             condition_label=dict(DLC_CONDITION_SELECTION).get(record.condition, record.condition),
             portal_url=portal_url,
+            lot_name=record.lot_id.name,
+            date_limite_produit_origine=record.date_limite_produit_origine,
         )
         ok, error = send_zpl(zpl, printer_ip)
         if not ok:
