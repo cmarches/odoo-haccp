@@ -4,7 +4,7 @@
     'summary': 'Rapport PDF réglementaire HACCP pour contrôles sanitaires',
     'category': 'Quality',
     'author': 'AIFluence Digital',
-    'depends': ['quality_control', 'web', 'mail', 'portal'],
+    'depends': ['quality_control', 'web', 'mail', 'portal', 'stock'],
     'data': [
         'security/ir.model.access.csv',
         'security/haccp_kitchen_security.xml',
@@ -15,6 +15,7 @@
         'views/haccp_calculs_views.xml',
         'views/haccp_document_views.xml',
         'views/haccp_portal_templates.xml',
+        'views/res_config_settings_views.xml',
         'views/menu.xml',
         'views/quality_inherit.xml',
     ],

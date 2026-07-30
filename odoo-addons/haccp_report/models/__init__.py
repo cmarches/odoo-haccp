@@ -9,3 +9,4 @@ from . import haccp_decongelation
 from . import haccp_reassort
 from . import haccp_document
 from . import zpl_printer
+from . import res_config_settings

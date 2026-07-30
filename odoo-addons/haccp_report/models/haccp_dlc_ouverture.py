@@ -17,6 +17,9 @@ class HaccpDlcOuverture(models.Model):
         string='Référence', required=True, copy=False, readonly=True, default='Nouveau'
     )
     product_id = fields.Many2one('product.template', string='Produit (catalogue)')
+    lot_id = fields.Many2one(
+        'stock.lot', string='Lot Odoo', copy=False, readonly=True
+    )
     product_name = fields.Char(string='Nom du produit', required=True)
     famille = fields.Selection(DLC_FAMILLE_SELECTION, string='Famille', required=True)
     condition = fields.Selection(
@@ -30,6 +33,9 @@ class HaccpDlcOuverture(models.Model):
     )
     duree_jours = fields.Integer(string='Durée (jours)', compute='_compute_dlc', store=True)
     date_limite = fields.Date(string='Date limite', compute='_compute_dlc', store=True)
+    date_limite_produit_origine = fields.Date(
+        string='DLC produit (origine)', compute='_compute_dlc', store=True
+    )
     statut = fields.Selection([
         ('ouvert', 'Ouvert'),
         ('termine', 'Terminé'),
@@ -50,15 +56,78 @@ class HaccpDlcOuverture(models.Model):
             record._portal_ensure_token()
         return records
 
-    @api.depends('famille', 'condition', 'date_ouverture')
+    def _find_available_lots(self, product_template):
+        return self.env['stock.lot'].search([
+            ('product_id.product_tmpl_id', '=', product_template.id),
+            ('product_qty', '>', 0),
+        ])
+
+    def _create_lot_for_product(self, product_template, name):
+        variant = product_template.product_variant_id
+        return self.env['stock.lot'].create({
+            'name': name,
+            'product_id': variant.id,
+            'company_id': self.env.company.id,
+        })
+
+    def _resolve_lot(self, product_template):
+        """Retourne un dict décrivant comment le lot a été résolu pour ce
+        produit :
+        - {'status': 'single', 'lot': <stock.lot>} : un seul lot disponible,
+          sélectionné automatiquement.
+        - {'status': 'ambiguous', 'candidates': <stock.lot recordset>} :
+          plusieurs lots disponibles, l'appelant doit demander à l'utilisateur
+          de choisir.
+        - {'status': 'created', 'lot': <stock.lot>, 'reference': str} : aucun
+          lot disponible, un nouveau lot a été créé avec pour nom la
+          référence générée (à réutiliser telle quelle pour l'enregistrement
+          haccp.dlc.ouverture, pour éviter toute divergence)."""
+        lots = self._find_available_lots(product_template)
+        if len(lots) == 1:
+            return {'status': 'single', 'lot': lots}
+        if len(lots) > 1:
+            return {'status': 'ambiguous', 'candidates': lots}
+        reference = self.env['ir.sequence'].next_by_code('haccp.dlc.ouverture') or 'Nouveau'
+        lot = self._create_lot_for_product(product_template, reference)
+        return {'status': 'created', 'lot': lot, 'reference': reference}
+
+    # La dépendance porte volontairement sur `lot_id` et non sur
+    # `lot_id.expiration_date` : ce dernier champ n'existe que si le module
+    # optionnel `product_expiry` est installé, et référencer un champ
+    # potentiellement inexistant dans `@api.depends` casserait le chargement
+    # du module en son absence. Conséquence : modifier `expiration_date` sur
+    # un lot déjà lié à un enregistrement existant ne recalculera PAS
+    # rétroactivement `date_limite`/`date_limite_produit_origine` de cet
+    # enregistrement — seule la création d'un nouvel enregistrement (ou une
+    # nouvelle écriture sur `lot_id`/`famille`/`condition`/`date_ouverture`)
+    # déclenche le recalcul.
+    @api.depends('famille', 'condition', 'date_ouverture', 'lot_id')
     def _compute_dlc(self):
+        use_native_expiry = self.env['ir.config_parameter'].sudo().get_param(
+            'haccp_report.use_native_expiry'
+        ) == 'True'
+        lot_has_expiry_field = 'expiration_date' in self.env['stock.lot']._fields
         for rec in self:
             duree = DLC_TABLE.get((rec.famille, rec.condition), 0)
             rec.duree_jours = duree
+            date_limite = False
             if rec.date_ouverture and duree:
-                rec.date_limite = rec.date_ouverture.date() + timedelta(days=duree)
-            else:
-                rec.date_limite = False
+                date_limite = rec.date_ouverture.date() + timedelta(days=duree)
+
+            date_origine = False
+            if use_native_expiry and rec.lot_id and lot_has_expiry_field:
+                expiration_date = rec.lot_id.expiration_date
+                if expiration_date:
+                    date_origine = (
+                        expiration_date.date()
+                        if hasattr(expiration_date, 'date')
+                        else expiration_date
+                    )
+                    if date_limite and date_limite > date_origine:
+                        date_limite = date_origine
+
+            rec.date_limite = date_limite
+            rec.date_limite_produit_origine = date_origine
 
     @api.depends('statut', 'date_limite')
     def _compute_est_expire(self):

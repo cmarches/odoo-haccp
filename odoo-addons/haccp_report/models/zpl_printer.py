@@ -8,7 +8,8 @@ def _zpl_safe(text):
 
 
 def build_zpl(reference, product_name, date_ouverture, operateur_name,
-               date_limite, duree_jours, condition_label, portal_url):
+               date_limite, duree_jours, condition_label, portal_url,
+               lot_name, date_limite_produit_origine=None):
     """Construit le ZPL pour l'étiquette DLC secondaire (imprimante OXHOO
     TLP200 compatible Zebra ZPL, étiquette 99x80mm @ 203dpi = 792x640 dots).
 
@@ -21,12 +22,16 @@ def build_zpl(reference, product_name, date_ouverture, operateur_name,
     coordonnées ci-dessous correspondent réellement à la taille physique de
     l'étiquette.
 
-    Le code-barre (^BY2, ~360 dots de large max pour une référence type
-    AAAA-JJJ-NNN) et le QR sont placés côte à côte sur la même ligne, avec
-    une marge large entre les deux, plutôt qu'empilés verticalement — la
-    taille réelle du QR dépend de la longueur de l'URL encodée (référence +
-    token) et peut dépasser la hauteur du code-barre, donc les empiler
-    créait un chevauchement quelle que soit cette taille."""
+    Pas de code-barre : aucun processus du système ne le lit (la clôture
+    d'étiquette se fait par scan du QR, pas par recherche de référence) —
+    référence et lot sont affichés en texte simple. Le QR reste le seul
+    élément scanné, conservé à sa position d'origine."""
+    origine_line = ''
+    if date_limite_produit_origine:
+        origine_line = (
+            "^FO40,410^FDDLC produit d'origine: "
+            f"{_zpl_safe(date_limite_produit_origine)}^FS\n"
+        )
     return (
         '^XA\n'
         '^CI28\n'
@@ -41,7 +46,9 @@ def build_zpl(reference, product_name, date_ouverture, operateur_name,
         f'^FO40,205^FDDLC: {_zpl_safe(date_limite)} (J+{duree_jours})^FS\n'
         '^CF0,32\n'
         f'^FO40,275^FDConservation: {_zpl_safe(condition_label)}^FS\n'
-        f'^BY2^FO40,340^BCN,100,Y,N,N^FD{_zpl_safe(reference)}^FS\n'
+        f'^FO40,320^FDRéférence: {_zpl_safe(reference)}^FS\n'
+        f'^FO40,355^FDLot: {_zpl_safe(lot_name)}^FS\n'
+        f'{origine_line}'
         f'^FO460,320^BQN,2,5^FDQA,{_zpl_safe(portal_url)}^FS\n'
         '^XZ\n'
     )
