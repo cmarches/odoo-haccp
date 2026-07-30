@@ -134,3 +134,73 @@ class TestResolveLot(TransactionCase):
         result = self.env['haccp.dlc.ouverture']._resolve_lot(self.product)
         self.assertEqual(result['status'], 'ambiguous')
         self.assertEqual(len(result['candidates']), 2)
+
+
+class TestPlafonnementDlcPrimaire(TransactionCase):
+
+    def setUp(self):
+        super().setUp()
+        self.product = self.env['product.template'].create({
+            'name': 'Produit test plafonnement', 'tracking': 'lot',
+            'is_storable': True,
+        })
+        self.lot = self.env['stock.lot'].create({
+            'name': 'LOT-PLAFOND-001',
+            'product_id': self.product.product_variant_id.id,
+        })
+
+    def _activer_config(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'haccp_report.use_native_expiry', 'True'
+        )
+
+    def test_pas_de_plafonnement_si_config_desactivee(self):
+        if 'expiration_date' not in self.env['stock.lot']._fields:
+            self.skipTest('product_expiry non installé sur cette base de test')
+        self.lot.expiration_date = fields.Datetime.now() + timedelta(days=1)
+        rec = self.env['haccp.dlc.ouverture'].create({
+            'product_id': self.product.id, 'product_name': self.product.name,
+            'lot_id': self.lot.id, 'famille': 'laitier', 'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(), 'operateur_id': self.env.user.id,
+        })
+        # laitier/refrigere = 7 jours, largement au-delà de +1 jour, mais la
+        # config est désactivée : pas de plafonnement.
+        self.assertEqual(rec.date_limite, fields.Datetime.now().date() + timedelta(days=7))
+        self.assertFalse(rec.date_limite_produit_origine)
+
+    def test_plafonnement_si_dlc_secondaire_depasse_dlc_primaire(self):
+        if 'expiration_date' not in self.env['stock.lot']._fields:
+            self.skipTest('product_expiry non installé sur cette base de test')
+        self._activer_config()
+        origine = fields.Datetime.now() + timedelta(days=2)
+        self.lot.expiration_date = origine
+        rec = self.env['haccp.dlc.ouverture'].create({
+            'product_id': self.product.id, 'product_name': self.product.name,
+            'lot_id': self.lot.id, 'famille': 'laitier', 'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(), 'operateur_id': self.env.user.id,
+        })
+        self.assertEqual(rec.date_limite, origine.date())
+        self.assertEqual(rec.date_limite_produit_origine, origine.date())
+
+    def test_pas_de_plafonnement_si_dlc_secondaire_anterieure(self):
+        if 'expiration_date' not in self.env['stock.lot']._fields:
+            self.skipTest('product_expiry non installé sur cette base de test')
+        self._activer_config()
+        origine = fields.Datetime.now() + timedelta(days=30)
+        self.lot.expiration_date = origine
+        rec = self.env['haccp.dlc.ouverture'].create({
+            'product_id': self.product.id, 'product_name': self.product.name,
+            'lot_id': self.lot.id, 'famille': 'laitier', 'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(), 'operateur_id': self.env.user.id,
+        })
+        self.assertEqual(rec.date_limite, fields.Datetime.now().date() + timedelta(days=7))
+        self.assertEqual(rec.date_limite_produit_origine, origine.date())
+
+    def test_pas_de_plafonnement_si_pas_de_lot(self):
+        self._activer_config()
+        rec = self.env['haccp.dlc.ouverture'].create({
+            'product_name': 'Sans lot', 'famille': 'laitier', 'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(), 'operateur_id': self.env.user.id,
+        })
+        self.assertEqual(rec.date_limite, fields.Datetime.now().date() + timedelta(days=7))
+        self.assertFalse(rec.date_limite_produit_origine)

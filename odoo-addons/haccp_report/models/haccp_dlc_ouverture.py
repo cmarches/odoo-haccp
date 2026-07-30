@@ -33,6 +33,9 @@ class HaccpDlcOuverture(models.Model):
     )
     duree_jours = fields.Integer(string='Durée (jours)', compute='_compute_dlc', store=True)
     date_limite = fields.Date(string='Date limite', compute='_compute_dlc', store=True)
+    date_limite_produit_origine = fields.Date(
+        string='DLC produit (origine)', compute='_compute_dlc', store=True
+    )
     statut = fields.Selection([
         ('ouvert', 'Ouvert'),
         ('termine', 'Terminé'),
@@ -88,15 +91,33 @@ class HaccpDlcOuverture(models.Model):
         lot = self._create_lot_for_product(product_template, reference)
         return {'status': 'created', 'lot': lot, 'reference': reference}
 
-    @api.depends('famille', 'condition', 'date_ouverture')
+    @api.depends('famille', 'condition', 'date_ouverture', 'lot_id')
     def _compute_dlc(self):
+        use_native_expiry = self.env['ir.config_parameter'].sudo().get_param(
+            'haccp_report.use_native_expiry'
+        )
+        lot_has_expiry_field = 'expiration_date' in self.env['stock.lot']._fields
         for rec in self:
             duree = DLC_TABLE.get((rec.famille, rec.condition), 0)
             rec.duree_jours = duree
+            date_limite = False
             if rec.date_ouverture and duree:
-                rec.date_limite = rec.date_ouverture.date() + timedelta(days=duree)
-            else:
-                rec.date_limite = False
+                date_limite = rec.date_ouverture.date() + timedelta(days=duree)
+
+            date_origine = False
+            if use_native_expiry and rec.lot_id and lot_has_expiry_field:
+                expiration_date = rec.lot_id.expiration_date
+                if expiration_date:
+                    date_origine = (
+                        expiration_date.date()
+                        if hasattr(expiration_date, 'date')
+                        else expiration_date
+                    )
+                    if date_limite and date_limite > date_origine:
+                        date_limite = date_origine
+
+            rec.date_limite = date_limite
+            rec.date_limite_produit_origine = date_origine
 
     @api.depends('statut', 'date_limite')
     def _compute_est_expire(self):
