@@ -9,7 +9,7 @@
          géré séparément via documents.access (cf. action_sync_haccp_portal_access).
 
          Note : access_internal est une bascule grossière (base.group_user),
-         pas limitée à quality.group_quality_manager/user -- tout utilisateur
+         pas limitée à quality.group_quality_manager/user : tout utilisateur
          interne peut donc voir/modifier/supprimer ces 4 dossiers, y compris
          Rapports HACCP. Décision assumée pour le POC (1 instance par
          restaurant, peu d'utilisateurs internes) plutôt que de complexifier
