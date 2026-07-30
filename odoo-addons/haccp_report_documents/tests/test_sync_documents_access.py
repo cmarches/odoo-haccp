@@ -81,3 +81,14 @@ class TestSyncDocumentsAccess(TransactionCase):
         result_second = self.env['documents.document'].action_sync_haccp_portal_access()
         self.assertIn('0', result_second['params']['message'])
         self.assertEqual(int(result_second['params']['message'].split()[0]), 0)
+
+    def test_action_serveur_retourne_bien_la_notification(self):
+        # Exerce le vrai chemin "clic sur le menu" : l'action ir.actions.server
+        # doit assigner son résultat à la variable `action` pour que
+        # `_run_action_code_multi` le renvoie. Un simple appel direct à la
+        # méthode du modèle (comme les autres tests ci-dessus) ne peut pas
+        # détecter une régression sur ce point puisqu'il contourne la couche
+        # ir.actions.server.
+        result = self.env.ref('haccp_report_documents.action_sync_haccp_portal_access').run()
+        self.assertEqual(result.get('type'), 'ir.actions.client')
+        self.assertEqual(result.get('tag'), 'display_notification')
