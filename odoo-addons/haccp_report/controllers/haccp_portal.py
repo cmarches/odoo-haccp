@@ -76,9 +76,21 @@ class HaccpPortalController(http.Controller):
         self._check_kitchen_group()
 
         product_id = _parse_product_id(post.get('product_id'))
+        # .exists() est vérifié avant tout accès à un champ du produit : un
+        # product_id périmé/forgé (produit supprimé entre-temps) ferait sinon
+        # lever un MissingError non catché dès la lecture de .name ci-dessous.
+        product = request.env['product.template'].sudo().browse(product_id) if product_id else None
+        produit_non_reconnu = _(
+            "Produit non reconnu — demandez à votre responsable de "
+            "l'ajouter au catalogue avec suivi par lot activé."
+        )
+
+        if product is not None and not product.exists():
+            return self.haccp_etiquette_form(error=produit_non_reconnu, **post)
+
         product_name = post.get('product_name') or ''
-        if product_id:
-            product_name = request.env['product.template'].sudo().browse(product_id).name
+        if product is not None:
+            product_name = product.name
 
         if not product_name or not post.get('famille') or not post.get('condition'):
             return self.haccp_etiquette_form(
@@ -87,15 +99,8 @@ class HaccpPortalController(http.Controller):
             )
 
         if not product_id:
-            return self.haccp_etiquette_form(
-                error=_(
-                    "Produit non reconnu — demandez à votre responsable de "
-                    "l'ajouter au catalogue avec suivi par lot activé."
-                ),
-                **post,
-            )
+            return self.haccp_etiquette_form(error=produit_non_reconnu, **post)
 
-        product = request.env['product.template'].sudo().browse(product_id)
         if product.tracking == 'none':
             return self.haccp_etiquette_form(
                 error=_(

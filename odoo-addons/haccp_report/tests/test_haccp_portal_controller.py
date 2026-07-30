@@ -146,6 +146,7 @@ class TestHaccpPortalController(HttpCase):
             'date_ouverture': fields.Datetime.now(),
         })
         self.assertIn('demandez à votre responsable', response.text)
+        self.assertIn('ajouter au catalogue', response.text)
         record = self.env['haccp.dlc.ouverture'].search(
             [('product_name', '=', 'Produit non catalogué')]
         )
@@ -164,8 +165,31 @@ class TestHaccpPortalController(HttpCase):
             'date_ouverture': fields.Datetime.now(),
         })
         self.assertIn('demandez à votre responsable', response.text)
+        self.assertIn('activer.', response.text)
         record = self.env['haccp.dlc.ouverture'].search(
             [('product_id', '=', product.id)]
+        )
+        self.assertFalse(record)
+
+    def test_soumission_bloquee_si_product_id_inexistant(self):
+        self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
+        product = self.env['product.template'].create({
+            'name': 'Produit à supprimer', 'tracking': 'lot', 'is_storable': True,
+        })
+        dead_id = product.id
+        product.unlink()
+        response = self.url_open('/haccp/etiquette/nouvelle', data={
+            'csrf_token': self._get_csrf_token(),
+            'product_id': dead_id,
+            'famille': 'autre',
+            'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(),
+        })
+        self.assertNotEqual(response.status_code, 500)
+        self.assertIn('demandez à votre responsable', response.text)
+        self.assertIn('ajouter au catalogue', response.text)
+        record = self.env['haccp.dlc.ouverture'].search(
+            [('product_id', '=', dead_id)]
         )
         self.assertFalse(record)
 
