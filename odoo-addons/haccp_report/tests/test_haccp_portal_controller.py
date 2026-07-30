@@ -41,20 +41,23 @@ class TestHaccpPortalController(HttpCase):
 
     def test_creation_force_operateur_depuis_session(self):
         self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
+        product = self.env['product.template'].create({
+            'name': 'Produit test usurpation', 'tracking': 'lot', 'is_storable': True,
+        })
         autre_utilisateur = self.env['res.users'].create({
             'name': 'Un Autre',
             'login': 'un.autre@example.com',
         })
         self.url_open('/haccp/etiquette/nouvelle', data={
             'csrf_token': self._get_csrf_token(),
-            'product_name': 'Test création',
+            'product_id': product.id,
             'famille': 'autre',
             'condition': 'refrigere',
             'date_ouverture': fields.Datetime.now(),
             'operateur_id': autre_utilisateur.id,  # tentative d'usurpation
         })
         record = self.env['haccp.dlc.ouverture'].search(
-            [('product_name', '=', 'Test création')], limit=1
+            [('product_id', '=', product.id)], limit=1
         )
         self.assertTrue(record)
         self.assertEqual(record.operateur_id, self.kitchen_user)
@@ -104,9 +107,12 @@ class TestHaccpPortalController(HttpCase):
 
     def test_date_ouverture_invalide_ne_plante_pas_la_soumission(self):
         self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
+        product = self.env['product.template'].create({
+            'name': 'Produit test date invalide', 'tracking': 'lot', 'is_storable': True,
+        })
         response = self.url_open('/haccp/etiquette/nouvelle', data={
             'csrf_token': self._get_csrf_token(),
-            'product_name': 'Test date invalide',
+            'product_id': product.id,
             'famille': 'autre',
             'condition': 'refrigere',
             'date_ouverture': 'pas-une-date',
@@ -129,6 +135,39 @@ class TestHaccpPortalController(HttpCase):
         )
         self.assertNotEqual(response.status_code, 500)
         self.assertEqual(record.statut, 'ouvert')
+
+    def test_soumission_bloquee_si_produit_hors_catalogue(self):
+        self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
+        response = self.url_open('/haccp/etiquette/nouvelle', data={
+            'csrf_token': self._get_csrf_token(),
+            'product_name': 'Produit non catalogué',
+            'famille': 'autre',
+            'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(),
+        })
+        self.assertIn('demandez à votre responsable', response.text)
+        record = self.env['haccp.dlc.ouverture'].search(
+            [('product_name', '=', 'Produit non catalogué')]
+        )
+        self.assertFalse(record)
+
+    def test_soumission_bloquee_si_tracking_desactive(self):
+        self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
+        product = self.env['product.template'].create({
+            'name': 'Produit sans tracking', 'tracking': 'none',
+        })
+        response = self.url_open('/haccp/etiquette/nouvelle', data={
+            'csrf_token': self._get_csrf_token(),
+            'product_id': product.id,
+            'famille': 'autre',
+            'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(),
+        })
+        self.assertIn('demandez à votre responsable', response.text)
+        record = self.env['haccp.dlc.ouverture'].search(
+            [('product_id', '=', product.id)]
+        )
+        self.assertFalse(record)
 
     def _get_csrf_token(self):
         response = self.url_open('/haccp/etiquette/nouvelle')

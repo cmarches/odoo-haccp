@@ -86,6 +86,25 @@ class HaccpPortalController(http.Controller):
                 **post,
             )
 
+        if not product_id:
+            return self.haccp_etiquette_form(
+                error=_(
+                    "Produit non reconnu — demandez à votre responsable de "
+                    "l'ajouter au catalogue avec suivi par lot activé."
+                ),
+                **post,
+            )
+
+        product = request.env['product.template'].sudo().browse(product_id)
+        if product.tracking == 'none':
+            return self.haccp_etiquette_form(
+                error=_(
+                    "Suivi par lot non activé sur ce produit — demandez à "
+                    "votre responsable de l'activer."
+                ),
+                **post,
+            )
+
         date_ouverture_raw = post.get('date_ouverture')
         date_ouverture = fields.Datetime.now()
         if date_ouverture_raw:
