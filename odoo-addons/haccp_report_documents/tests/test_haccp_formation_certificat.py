@@ -1,3 +1,5 @@
+from psycopg2.errors import NotNullViolation
+
 from odoo import fields
 from odoo.tests.common import TransactionCase
 
@@ -29,7 +31,7 @@ class TestHaccpFormationCertificat(TransactionCase):
         self.assertEqual(rec.employe_id, self.env.user)
 
     def test_type_formation_requis(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(NotNullViolation):
             self.env['haccp.formation.certificat'].create({
                 'employe_id': self.env.user.id,
                 'date_formation': fields.Date.today(),

@@ -16,6 +16,12 @@ class HaccpFormationCertificat(models.Model):
     ], string='Type de formation', required=True)
     date_formation = fields.Date(string='Date de formation', required=True)
     document_id = fields.Many2one(
-        'documents.document', string='Justificatif', required=True
+        'documents.document', string='Justificatif', required=True,
+        domain=lambda self: [
+            ('folder_id', '=', self.env.ref(
+                'haccp_report_documents.documents_folder_haccp_formations'
+            ).id),
+            ('type', '!=', 'folder'),
+        ],
     )
     commentaire = fields.Text(string='Commentaire')
