@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data noupdate="1">
+    <record id="documents_folder_haccp" model="documents.document">
+      <field name="name">HACCP</field>
+      <field name="type">folder</field>
+    </record>
+    <record id="documents_folder_haccp_rapports" model="documents.document">
+      <field name="name">Rapports HACCP</field>
+      <field name="type">folder</field>
+      <field name="folder_id" ref="documents_folder_haccp"/>
+    </record>
+    <record id="documents_folder_haccp_bibliotheque" model="documents.document">
+      <field name="name">Bibliothèque de documents</field>
+      <field name="type">folder</field>
+      <field name="folder_id" ref="documents_folder_haccp"/>
+    </record>
+    <record id="documents_folder_haccp_formations" model="documents.document">
+      <field name="name">Formations individuelles</field>
+      <field name="type">folder</field>
+      <field name="folder_id" ref="documents_folder_haccp"/>
+    </record>
+  </data>
+</odoo>
