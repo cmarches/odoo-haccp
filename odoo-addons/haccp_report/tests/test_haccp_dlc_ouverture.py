@@ -87,3 +87,50 @@ class TestHaccpDlcOuverture(TransactionCase):
     def test_lot_id_vide_par_defaut(self):
         rec = self._make()
         self.assertFalse(rec.lot_id)
+
+
+class TestResolveLot(TransactionCase):
+
+    def setUp(self):
+        super().setUp()
+        self.product = self.env['product.template'].create({
+            'name': 'Sauce tomate maison (test lot)',
+            'is_storable': True,
+            'tracking': 'lot',
+        })
+
+    def test_resolve_lot_cree_un_nouveau_lot_si_aucun_disponible(self):
+        result = self.env['haccp.dlc.ouverture']._resolve_lot(self.product)
+        self.assertEqual(result['status'], 'created')
+        self.assertTrue(result['lot'])
+        self.assertEqual(result['lot'].name, result['reference'])
+        self.assertEqual(result['lot'].product_id, self.product.product_variant_id)
+
+    def test_resolve_lot_selectionne_automatiquement_si_un_seul_disponible(self):
+        lot = self.env['stock.lot'].create({
+            'name': 'LOT-UNIQUE-001',
+            'product_id': self.product.product_variant_id.id,
+        })
+        self.env['stock.quant'].create({
+            'product_id': self.product.product_variant_id.id,
+            'lot_id': lot.id,
+            'location_id': self.env.ref('stock.stock_location_stock').id,
+            'quantity': 5,
+        })
+        result = self.env['haccp.dlc.ouverture']._resolve_lot(self.product)
+        self.assertEqual(result['status'], 'single')
+        self.assertEqual(result['lot'], lot)
+
+    def test_resolve_lot_ambigu_si_plusieurs_disponibles(self):
+        location = self.env.ref('stock.stock_location_stock')
+        for name in ('LOT-A-001', 'LOT-B-002'):
+            lot = self.env['stock.lot'].create({
+                'name': name, 'product_id': self.product.product_variant_id.id,
+            })
+            self.env['stock.quant'].create({
+                'product_id': self.product.product_variant_id.id,
+                'lot_id': lot.id, 'location_id': location.id, 'quantity': 3,
+            })
+        result = self.env['haccp.dlc.ouverture']._resolve_lot(self.product)
+        self.assertEqual(result['status'], 'ambiguous')
+        self.assertEqual(len(result['candidates']), 2)

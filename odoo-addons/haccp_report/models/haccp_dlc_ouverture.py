@@ -53,6 +53,41 @@ class HaccpDlcOuverture(models.Model):
             record._portal_ensure_token()
         return records
 
+    def _find_available_lots(self, product_template):
+        return self.env['stock.lot'].search([
+            ('product_id.product_tmpl_id', '=', product_template.id),
+            ('product_qty', '>', 0),
+        ])
+
+    def _create_lot_for_product(self, product_template, name):
+        variant = product_template.product_variant_id
+        return self.env['stock.lot'].create({
+            'name': name,
+            'product_id': variant.id,
+            'company_id': self.env.company.id,
+        })
+
+    def _resolve_lot(self, product_template):
+        """Retourne un dict décrivant comment le lot a été résolu pour ce
+        produit :
+        - {'status': 'single', 'lot': <stock.lot>} : un seul lot disponible,
+          sélectionné automatiquement.
+        - {'status': 'ambiguous', 'candidates': <stock.lot recordset>} :
+          plusieurs lots disponibles, l'appelant doit demander à l'utilisateur
+          de choisir.
+        - {'status': 'created', 'lot': <stock.lot>, 'reference': str} : aucun
+          lot disponible, un nouveau lot a été créé avec pour nom la
+          référence générée (à réutiliser telle quelle pour l'enregistrement
+          haccp.dlc.ouverture, pour éviter toute divergence)."""
+        lots = self._find_available_lots(product_template)
+        if len(lots) == 1:
+            return {'status': 'single', 'lot': lots}
+        if len(lots) > 1:
+            return {'status': 'ambiguous', 'candidates': lots}
+        reference = self.env['ir.sequence'].next_by_code('haccp.dlc.ouverture') or 'Nouveau'
+        lot = self._create_lot_for_product(product_template, reference)
+        return {'status': 'created', 'lot': lot, 'reference': reference}
+
     @api.depends('famille', 'condition', 'date_ouverture')
     def _compute_dlc(self):
         for rec in self:
