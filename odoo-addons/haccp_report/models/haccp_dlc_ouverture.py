@@ -91,11 +91,21 @@ class HaccpDlcOuverture(models.Model):
         lot = self._create_lot_for_product(product_template, reference)
         return {'status': 'created', 'lot': lot, 'reference': reference}
 
+    # La dépendance porte volontairement sur `lot_id` et non sur
+    # `lot_id.expiration_date` : ce dernier champ n'existe que si le module
+    # optionnel `product_expiry` est installé, et référencer un champ
+    # potentiellement inexistant dans `@api.depends` casserait le chargement
+    # du module en son absence. Conséquence : modifier `expiration_date` sur
+    # un lot déjà lié à un enregistrement existant ne recalculera PAS
+    # rétroactivement `date_limite`/`date_limite_produit_origine` de cet
+    # enregistrement — seule la création d'un nouvel enregistrement (ou une
+    # nouvelle écriture sur `lot_id`/`famille`/`condition`/`date_ouverture`)
+    # déclenche le recalcul.
     @api.depends('famille', 'condition', 'date_ouverture', 'lot_id')
     def _compute_dlc(self):
         use_native_expiry = self.env['ir.config_parameter'].sudo().get_param(
             'haccp_report.use_native_expiry'
-        )
+        ) == 'True'
         lot_has_expiry_field = 'expiration_date' in self.env['stock.lot']._fields
         for rec in self:
             duree = DLC_TABLE.get((rec.famille, rec.condition), 0)
