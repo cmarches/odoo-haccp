@@ -71,3 +71,19 @@ class TestHaccpDlcOuverture(TransactionCase):
         rec = self._make()
         with self.assertRaises(ValueError):
             rec.action_cloturer('bogus')
+
+    def test_lot_id_optionnel_et_stocke(self):
+        product = self.env['product.template'].create({
+            'name': 'Produit test lot',
+            'tracking': 'lot',
+        })
+        lot = self.env['stock.lot'].create({
+            'name': 'LOT-TEST-001',
+            'product_id': product.product_variant_id.id,
+        })
+        rec = self._make(product_id=product.id, lot_id=lot.id)
+        self.assertEqual(rec.lot_id, lot)
+
+    def test_lot_id_vide_par_defaut(self):
+        rec = self._make()
+        self.assertFalse(rec.lot_id)

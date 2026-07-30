@@ -17,6 +17,9 @@ class HaccpDlcOuverture(models.Model):
         string='Référence', required=True, copy=False, readonly=True, default='Nouveau'
     )
     product_id = fields.Many2one('product.template', string='Produit (catalogue)')
+    lot_id = fields.Many2one(
+        'stock.lot', string='Lot Odoo', copy=False, readonly=True
+    )
     product_name = fields.Char(string='Nom du produit', required=True)
     famille = fields.Selection(DLC_FAMILLE_SELECTION, string='Famille', required=True)
     condition = fields.Selection(
