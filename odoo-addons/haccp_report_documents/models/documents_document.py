@@ -1,4 +1,4 @@
-from odoo import api, models
+from odoo import _, api, models
 
 
 class DocumentsDocument(models.Model):
@@ -18,14 +18,27 @@ class DocumentsDocument(models.Model):
         gerants = self.env.ref('haccp_report_documents.group_haccp_gerant').user_ids
         cuisiniers = self.env.ref('haccp_report.group_haccp_kitchen').user_ids
 
-        self._ensure_access(gerants.mapped('partner_id'), rapports)
-        self._ensure_access(gerants.mapped('partner_id'), bibliotheque)
-        self._ensure_access(gerants.mapped('partner_id'), formations)
-        self._ensure_access(cuisiniers.mapped('partner_id'), bibliotheque)
-        self._ensure_access(cuisiniers.mapped('partner_id'), formations)
+        created = 0
+        created += self._ensure_access(gerants.mapped('partner_id'), rapports)
+        created += self._ensure_access(gerants.mapped('partner_id'), bibliotheque)
+        created += self._ensure_access(gerants.mapped('partner_id'), formations)
+        created += self._ensure_access(cuisiniers.mapped('partner_id'), bibliotheque)
+        created += self._ensure_access(cuisiniers.mapped('partner_id'), formations)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Synchronisation terminée'),
+                'message': _('%d nouvel(aux) accès créé(s).') % created,
+                'type': 'success',
+                'sticky': False,
+            },
+        }
 
     def _ensure_access(self, partners, document):
         Access = self.env['documents.access']
+        created = 0
         for partner in partners:
             existing = Access.search([
                 ('document_id', '=', document.id),
@@ -37,3 +50,5 @@ class DocumentsDocument(models.Model):
                     'partner_id': partner.id,
                     'role': 'view',
                 })
+                created += 1
+        return created

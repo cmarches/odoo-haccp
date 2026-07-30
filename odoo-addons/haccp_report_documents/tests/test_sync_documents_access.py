@@ -61,3 +61,23 @@ class TestSyncDocumentsAccess(TransactionCase):
             ('partner_id', '=', self.gerant.partner_id.id),
         ])
         self.assertEqual(len(acces), 1)
+
+    def test_sync_retourne_notification_avec_compteur(self):
+        # NB : le nombre exact d'accès créés au premier passage dépend des
+        # utilisateurs déjà membres des groupes HACCP sur la base (au moins
+        # ceux créés dans setUp, potentiellement d'autres sur une base
+        # partagée) ; on ne fige donc pas de valeur absolue, seulement que
+        # le premier passage crée bien des accès (> 0) et que le second,
+        # idempotent, n'en crée plus aucun (0).
+        result = self.env['documents.document'].action_sync_haccp_portal_access()
+        self.assertEqual(result['type'], 'ir.actions.client')
+        self.assertEqual(result['tag'], 'display_notification')
+        self.assertEqual(result['params']['type'], 'success')
+        premier_compteur = int(result['params']['message'].split()[0])
+        # Au minimum les 3 accès du gérant + 2 de la cuisine créés dans ce test.
+        self.assertGreaterEqual(premier_compteur, 5)
+
+        # Un second passage ne crée plus rien : le compteur doit retomber à 0.
+        result_second = self.env['documents.document'].action_sync_haccp_portal_access()
+        self.assertIn('0', result_second['params']['message'])
+        self.assertEqual(int(result_second['params']['message'].split()[0]), 0)
