@@ -4,6 +4,12 @@ from odoo.tests.common import TransactionCase
 class TestResConfigSettings(TransactionCase):
 
     def test_parametre_desactive_par_defaut(self):
+        # Ne pas dépendre de l'état ambiant du paramètre global (une
+        # activation manuelle antérieure sur une base partagée peut l'avoir
+        # laissé à True de façon persistante) : on le force explicitement.
+        self.env['ir.config_parameter'].sudo().set_param(
+            'haccp_report.use_native_expiry', 'False'
+        )
         settings = self.env['res.config.settings'].create({})
         self.assertFalse(settings.haccp_use_native_expiry)
 

@@ -154,9 +154,18 @@ class TestPlafonnementDlcPrimaire(TransactionCase):
             'haccp_report.use_native_expiry', 'True'
         )
 
+    def _desactiver_config(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'haccp_report.use_native_expiry', 'False'
+        )
+
     def test_pas_de_plafonnement_si_config_desactivee(self):
         if 'expiration_date' not in self.env['stock.lot']._fields:
             self.skipTest('product_expiry non installé sur cette base de test')
+        # Ne pas dépendre du défaut ambiant du paramètre : sur une base
+        # partagée (dev), une activation manuelle antérieure (Task 8) peut
+        # avoir laissé le paramètre à True de façon persistante.
+        self._desactiver_config()
         self.lot.expiration_date = fields.Datetime.now() + timedelta(days=1)
         rec = self.env['haccp.dlc.ouverture'].create({
             'product_id': self.product.id, 'product_name': self.product.name,
