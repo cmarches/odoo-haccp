@@ -13,9 +13,10 @@ from odoo.addons.haccp_report.models.zpl_printer import build_zpl, send_zpl
 _logger = logging.getLogger(__name__)
 
 
-def _parse_product_id(value):
-    """Convertit product_id en int, ou False si absent/non numérique
-    (une requête forgée pourrait envoyer une valeur non numérique)."""
+def _parse_int_or_false(value):
+    """Convertit une valeur (product_id, lot_id, ...) en int, ou False si
+    absent/non numérique (une requête forgée pourrait envoyer une valeur
+    non numérique)."""
     try:
         return int(value) if value else False
     except ValueError:
@@ -63,7 +64,7 @@ class HaccpPortalController(http.Controller):
             'condition': condition,
             'date_ouverture': date_ouverture,
             'product_name': kwargs.get('product_name', ''),
-            'selected_product_id': _parse_product_id(kwargs.get('product_id')),
+            'selected_product_id': _parse_int_or_false(kwargs.get('product_id')),
             'duree_jours': duree_jours,
             'date_limite': date_limite,
             'user_name': request.env.user.name,
@@ -75,7 +76,7 @@ class HaccpPortalController(http.Controller):
     def haccp_etiquette_submit(self, **post):
         self._check_kitchen_group()
 
-        product_id = _parse_product_id(post.get('product_id'))
+        product_id = _parse_int_or_false(post.get('product_id'))
         # .exists() est vérifié avant tout accès à un champ du produit : un
         # product_id périmé/forgé (produit supprimé entre-temps) ferait sinon
         # lever un MissingError non catché dès la lecture de .name ci-dessous.
@@ -130,7 +131,7 @@ class HaccpPortalController(http.Controller):
             'operateur_id': request.env.user.id,
         }
 
-        chosen_lot_id = _parse_product_id(post.get('lot_id'))
+        chosen_lot_id = _parse_int_or_false(post.get('lot_id'))
         if chosen_lot_id:
             lot = request.env['stock.lot'].sudo().browse(chosen_lot_id)
             if not lot.exists() or lot.product_id.product_tmpl_id.id != product_id:

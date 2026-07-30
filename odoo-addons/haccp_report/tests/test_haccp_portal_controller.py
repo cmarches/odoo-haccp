@@ -124,6 +124,24 @@ class TestHaccpPortalController(HttpCase):
         record = self.env['haccp.dlc.ouverture'].search([('product_id', '=', product.id)])
         self.assertEqual(record.lot_id, lot_choisi)
 
+    def test_lot_id_invalide_ne_cree_pas_l_enregistrement(self):
+        self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
+        product = self._make_produit_tracke('Produit test lot invalide')
+        autre_produit = self._make_produit_tracke('Autre produit')
+        lot_autre_produit = self.env['stock.lot'].create({
+            'name': 'LOT-AUTRE-PRODUIT', 'product_id': autre_produit.product_variant_id.id,
+        })
+        response = self.url_open('/haccp/etiquette/nouvelle', data={
+            'csrf_token': self._get_csrf_token(),
+            'product_id': product.id, 'famille': 'autre', 'condition': 'refrigere',
+            'date_ouverture': fields.Datetime.now(),
+            'lot_id': lot_autre_produit.id,
+        })
+        self.assertNotEqual(response.status_code, 500)
+        self.assertIn('Lot invalide', response.text)
+        record = self.env['haccp.dlc.ouverture'].search([('product_id', '=', product.id)])
+        self.assertFalse(record)
+
     def test_creation_force_operateur_depuis_session(self):
         self.authenticate('cuisinier.controller@example.com', 'cuisinier123')
         product = self._make_produit_tracke('Produit test usurpation')
