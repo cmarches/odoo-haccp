@@ -12,6 +12,11 @@
         <sheet>
           <group string="DLC / Étiquettes">
             <field name="haccp_use_native_expiry"/>
+            <div class="text-muted">
+              Si activé : la DLC secondaire calculée sur une étiquette ne dépassera
+              jamais la date de péremption native du lot Odoo lié (DLC produit
+              d'origine), quand celle-ci est renseignée.
+            </div>
             <field name="haccp_product_expiry_installed" invisible="1"/>
             <div class="alert alert-warning" role="alert"
                  invisible="haccp_product_expiry_installed">
