@@ -136,6 +136,42 @@
     </html>
   </template>
 
+  <template id="portal_etiquette_choix_lot" name="Choix du lot — étiquette DLC">
+    <html lang="fr">
+      <head>
+        <meta charset="utf-8"/>
+        <title>Choix du lot</title>
+        <style>
+          body { font-family: -apple-system, Arial, sans-serif; max-width: 420px; margin: 20px auto; padding: 0 16px; }
+          .f-label { font-size: 12px; text-transform: uppercase; color: #666; margin-top: 14px; }
+          select { width: 100%; box-sizing: border-box; padding: 8px; font-size: 15px; border: 1px solid #ccc; border-radius: 6px; margin-top: 4px; }
+          .btn-print { margin-top: 16px; width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; background: #2c5f2d; color: #fff; }
+        </style>
+      </head>
+      <body>
+        <h2>Plusieurs lots disponibles</h2>
+        <p>Choisissez le lot correspondant au produit que vous ouvrez.</p>
+        <form method="post" action="/haccp/etiquette/nouvelle">
+          <input type="hidden" name="csrf_token" t-att-value="csrf_token"/>
+          <input type="hidden" name="product_id" t-att-value="product_id"/>
+          <input type="hidden" name="product_name" t-att-value="product_name"/>
+          <input type="hidden" name="famille" t-att-value="famille"/>
+          <input type="hidden" name="condition" t-att-value="condition"/>
+          <input type="hidden" name="date_ouverture" t-att-value="date_ouverture"/>
+
+          <div class="f-label">Lot</div>
+          <select name="lot_id">
+            <t t-foreach="candidates" t-as="lot">
+              <option t-att-value="lot.id"><t t-esc="lot.name"/></option>
+            </t>
+          </select>
+
+          <button type="submit" class="btn-print">🖨 Imprimer l'étiquette</button>
+        </form>
+      </body>
+    </html>
+  </template>
+
   <template id="portal_my_home_haccp" inherit_id="portal.portal_my_home">
     <xpath expr="//div[@id='portal_common_category']" position="inside">
       <t t-if="not request.env.user._is_public() and request.env.user.has_group('haccp_report.group_haccp_kitchen')">

@@ -121,14 +121,40 @@ class HaccpPortalController(http.Controller):
                     **post,
                 )
 
-        record = request.env['haccp.dlc.ouverture'].sudo().create({
+        create_vals = {
             'product_id': product_id,
             'product_name': product_name,
             'famille': post['famille'],
             'condition': post['condition'],
             'date_ouverture': date_ouverture,
             'operateur_id': request.env.user.id,
-        })
+        }
+
+        chosen_lot_id = _parse_product_id(post.get('lot_id'))
+        if chosen_lot_id:
+            lot = request.env['stock.lot'].sudo().browse(chosen_lot_id)
+            if not lot.exists() or lot.product_id.product_tmpl_id.id != product_id:
+                return self.haccp_etiquette_form(
+                    error=_('Lot invalide, merci de recommencer.'), **post,
+                )
+            create_vals['lot_id'] = lot.id
+        else:
+            resolution = request.env['haccp.dlc.ouverture'].sudo()._resolve_lot(product)
+            if resolution['status'] == 'ambiguous':
+                return request.render('haccp_report.portal_etiquette_choix_lot', {
+                    'candidates': resolution['candidates'],
+                    'product_id': product_id,
+                    'product_name': product_name,
+                    'famille': post['famille'],
+                    'condition': post['condition'],
+                    'date_ouverture': date_ouverture_raw or fields.Datetime.now().isoformat(),
+                    'csrf_token': request.csrf_token(),
+                })
+            create_vals['lot_id'] = resolution['lot'].id
+            if resolution['status'] == 'created':
+                create_vals['reference'] = resolution['reference']
+
+        record = request.env['haccp.dlc.ouverture'].sudo().create(create_vals)
 
         return self._print_and_render(record)
 
