@@ -1,24 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
   <data noupdate="1">
+    <!-- access_internal='edit' : sans ça (défaut Odoo 'none'), même les
+         managers qualité internes ne peuvent pas parcourir ces dossiers
+         depuis l'app Documents standard, ce qui bloque en pratique le
+         choix d'un document dans "Formations individuelles" pour créer un
+         haccp.formation.certificat. L'accès portail (gérant/cuisine) reste
+         géré séparément via documents.access (cf. action_sync_haccp_portal_access). -->
     <record id="documents_folder_haccp" model="documents.document">
       <field name="name">HACCP</field>
       <field name="type">folder</field>
+      <field name="access_internal">edit</field>
     </record>
     <record id="documents_folder_haccp_rapports" model="documents.document">
       <field name="name">Rapports HACCP</field>
       <field name="type">folder</field>
       <field name="folder_id" ref="documents_folder_haccp"/>
+      <field name="access_internal">edit</field>
     </record>
     <record id="documents_folder_haccp_bibliotheque" model="documents.document">
       <field name="name">Bibliothèque de documents</field>
       <field name="type">folder</field>
       <field name="folder_id" ref="documents_folder_haccp"/>
+      <field name="access_internal">edit</field>
     </record>
     <record id="documents_folder_haccp_formations" model="documents.document">
       <field name="name">Formations individuelles</field>
       <field name="type">folder</field>
       <field name="folder_id" ref="documents_folder_haccp"/>
+      <field name="access_internal">edit</field>
     </record>
   </data>
 </odoo>

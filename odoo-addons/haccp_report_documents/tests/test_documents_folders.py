@@ -17,6 +17,19 @@ class TestDocumentsFolders(TransactionCase):
             self.assertEqual(sous_dossier.folder_id, racine)
             self.assertEqual(sous_dossier.type, 'folder')
 
+    def test_dossiers_visibles_par_les_utilisateurs_internes(self):
+        # access_internal='none' est le défaut Odoo pour un documents.document
+        # créé sans le préciser : sans ce champ à 'edit', les managers
+        # qualité internes ne peuvent pas parcourir ces dossiers depuis
+        # l'app Documents standard (seul l'accès portail, géré séparément
+        # via documents.access, fonctionnerait).
+        racine = self.env.ref('haccp_report_documents.documents_folder_haccp')
+        rapports = self.env.ref('haccp_report_documents.documents_folder_haccp_rapports')
+        bibliotheque = self.env.ref('haccp_report_documents.documents_folder_haccp_bibliotheque')
+        formations = self.env.ref('haccp_report_documents.documents_folder_haccp_formations')
+        for dossier in (racine, rapports, bibliotheque, formations):
+            self.assertEqual(dossier.access_internal, 'edit')
+
     def test_groupe_gerant_implique_portail(self):
         groupe = self.env.ref('haccp_report_documents.group_haccp_gerant')
         portail = self.env.ref('base.group_portal')
