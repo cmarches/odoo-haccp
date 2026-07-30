@@ -1,1 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_haccp_formation_certificat_user,haccp.formation.certificat user,model_haccp_formation_certificat,quality.group_quality_user,1,1,1,0
+access_haccp_formation_certificat_manager,haccp.formation.certificat manager,model_haccp_formation_certificat,quality.group_quality_manager,1,1,1,1

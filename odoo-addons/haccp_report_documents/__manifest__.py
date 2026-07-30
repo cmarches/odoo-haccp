@@ -9,6 +9,7 @@
         'security/haccp_gerant_security.xml',
         'security/ir.model.access.csv',
         'data/documents_folders.xml',
+        'views/haccp_formation_certificat_views.xml',
         'views/menu.xml',
     ],
     'installable': True,

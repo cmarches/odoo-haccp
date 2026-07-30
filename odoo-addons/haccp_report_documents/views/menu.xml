@@ -15,5 +15,13 @@
       action="action_sync_haccp_portal_access"
       groups="quality.group_quality_manager"
       sequence="50"/>
+
+    <menuitem
+      id="menu_haccp_formation_certificat"
+      name="Formations individuelles"
+      parent="haccp_report.menu_haccp_reports_root"
+      action="action_haccp_formation_certificat"
+      groups="quality.group_quality_user"
+      sequence="35"/>
   </data>
 </odoo>
