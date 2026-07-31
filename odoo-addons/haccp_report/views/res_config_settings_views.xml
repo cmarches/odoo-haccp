@@ -24,6 +24,15 @@
               Installez-le pour que cette option prenne effet.
             </div>
           </group>
+          <group string="Bibliothèque de documents">
+            <field name="haccp_manifest_url"/>
+            <div class="text-muted">
+              URL du manifeste JSON listant les documents de la bibliothèque
+              HACCP (affiches, relevés, fiches pratiques...). Modifiable pour
+              pointer vers un environnement de staging ou un manifeste
+              spécifique au client.
+            </div>
+          </group>
         </sheet>
       </form>
     </field>

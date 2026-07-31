@@ -9,6 +9,7 @@
         'security/ir.model.access.csv',
         'security/haccp_kitchen_security.xml',
         'data/haccp_dlc_ouverture_sequence.xml',
+        'data/haccp_manifest_url_default.xml',
         'report/report_action.xml',
         'report/report_template.xml',
         'views/haccp_report_views.xml',

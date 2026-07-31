@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <data noupdate="1">
+    <!-- Valeur par défaut, modifiable ensuite dans Configuration sans que
+         cette réinstallation ne l'écrase (noupdate). -->
+    <record id="haccp_manifest_url_default" model="ir.config_parameter">
+      <field name="key">haccp_report.manifest_url</field>
+      <field name="value">https://haccp.aifluencedigital.com/documents/manifest.json</field>
+    </record>
+  </data>
+</odoo>

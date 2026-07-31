@@ -36,6 +36,40 @@ class TestHaccpDocumentModel(TransactionCase):
         self.assertEqual(doc.statut, '✓ Téléchargé')
 
 
+class TestHaccpDocumentManifestUrl(TransactionCase):
+
+    def test_sync_utilise_url_par_defaut_si_non_configuree(self):
+        # Ne pas dépendre de l'état ambiant du paramètre (cf. piège déjà
+        # rencontré avec haccp_report.use_native_expiry sur une base
+        # partagée) : on le retire explicitement avant de tester le défaut.
+        self.env['ir.config_parameter'].sudo().set_param(
+            'haccp_report.manifest_url', False
+        )
+        with patch('odoo.addons.haccp_report.models.haccp_document.requests.get') as mock_get:
+            mock_manifest = MagicMock()
+            mock_manifest.json.return_value = {'documents': []}
+            mock_manifest.raise_for_status.return_value = None
+            mock_get.return_value = mock_manifest
+            self.env['haccp.document'].action_sync_documents()
+        mock_get.assert_called_once_with(
+            'https://haccp.aifluencedigital.com/documents/manifest.json', timeout=10
+        )
+
+    def test_sync_utilise_url_configuree_si_presente(self):
+        self.env['ir.config_parameter'].sudo().set_param(
+            'haccp_report.manifest_url', 'https://staging.example.com/manifest.json'
+        )
+        with patch('odoo.addons.haccp_report.models.haccp_document.requests.get') as mock_get:
+            mock_manifest = MagicMock()
+            mock_manifest.json.return_value = {'documents': []}
+            mock_manifest.raise_for_status.return_value = None
+            mock_get.return_value = mock_manifest
+            self.env['haccp.document'].action_sync_documents()
+        mock_get.assert_called_once_with(
+            'https://staging.example.com/manifest.json', timeout=10
+        )
+
+
 class TestHaccpDocumentSync(TransactionCase):
 
     def _make_mock_responses(self, manifest, pdf_content=b'%PDF-1.4 test'):

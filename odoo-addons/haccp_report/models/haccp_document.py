@@ -9,7 +9,7 @@ from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-MANIFEST_URL = 'http://192.168.1.182:8029/haccp_report/static/haccp/manifest.json'
+DEFAULT_MANIFEST_URL = 'https://haccp.aifluencedigital.com/documents/manifest.json'
 
 
 class HaccpDocument(models.Model):
@@ -38,11 +38,18 @@ class HaccpDocument(models.Model):
             rec.statut = '✓ Téléchargé' if rec.attachment_id else '⬇ Non téléchargé'
 
     @api.model
+    def _get_manifest_url(self):
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'haccp_report.manifest_url', DEFAULT_MANIFEST_URL
+        )
+
+    @api.model
     def action_sync_documents(self):
         if not self.env.user.has_group('quality.group_quality_manager'):
             raise UserError(_('Cette action est réservée aux responsables qualité.'))
+        manifest_url = self._get_manifest_url()
         try:
-            resp = requests.get(MANIFEST_URL, timeout=10)
+            resp = requests.get(manifest_url, timeout=10)
             resp.raise_for_status()
             manifest = resp.json()
         except Exception as exc:
@@ -117,7 +124,7 @@ class HaccpDocument(models.Model):
         if not self.env.user.has_group('quality.group_quality_manager'):
             raise UserError(_('Cette action est réservée aux responsables qualité.'))
 
-        BASE = 'http://192.168.1.182:8029/haccp_report/static/haccp'
+        BASE = self._get_manifest_url().rsplit('/', 1)[0]
         DEMO_DOCS = [
             ('fiche-temperatures-positives', 'releves',
              'Traçabilité des températures frigos 0-5°C',
