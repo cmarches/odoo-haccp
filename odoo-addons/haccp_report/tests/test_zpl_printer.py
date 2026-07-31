@@ -47,6 +47,37 @@ class TestBuildZpl(TransactionCase):
         )
         self.assertIn('30/07/2026', zpl)
 
+    def test_dlc_produit_origine_sur_deux_lignes_distinctes(self):
+        # Trouvé à l'impression physique (2026-07-31) : "DLC produit
+        # d'origine: 2026-08-02" sur une seule ligne (~34 caractères)
+        # chevauche le QR. "Référence: 2026-211-1859" (~23 caractères, même
+        # position/police) avait été confirmée SANS chevauchement lors d'un
+        # test physique précédent — on aligne donc le libellé seul sur cette
+        # longueur validée en mettant la date sur une ligne séparée.
+        zpl = build_zpl(
+            reference='ref', product_name='Sauce tomate maison',
+            date_ouverture='19/07/2026', operateur_name='M. Dupont',
+            date_limite='22/07/2026', duree_jours=3,
+            condition_label='Réfrigéré (+4°C)', portal_url='http://example.com',
+            lot_name='LOT-001', date_limite_produit_origine='02/08/2026',
+        )
+        self.assertIn("^FDDLC produit d'origine:^FS", zpl)
+        self.assertIn('^FD02/08/2026^FS', zpl)
+        self.assertLess(
+            zpl.index("^FDDLC produit d'origine:^FS"),
+            zpl.index('^FD02/08/2026^FS'),
+        )
+
+    def test_qr_decale_pour_marge_de_securite(self):
+        zpl = build_zpl(
+            reference='ref', product_name='Sauce tomate maison',
+            date_ouverture='19/07/2026', operateur_name='M. Dupont',
+            date_limite='22/07/2026', duree_jours=3,
+            condition_label='Réfrigéré (+4°C)', portal_url='http://example.com',
+            lot_name='LOT-001',
+        )
+        self.assertIn('^FO524,320^BQN,2,5', zpl)
+
     def test_pas_de_ligne_dlc_origine_si_absente(self):
         zpl = build_zpl(
             reference='ref', product_name='Sauce tomate maison',

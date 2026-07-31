@@ -25,12 +25,20 @@ def build_zpl(reference, product_name, date_ouverture, operateur_name,
     Pas de code-barre : aucun processus du système ne le lit (la clôture
     d'étiquette se fait par scan du QR, pas par recherche de référence) —
     référence et lot sont affichés en texte simple. Le QR reste le seul
-    élément scanné, conservé à sa position d'origine."""
+    élément scanné, conservé à sa position d'origine.
+
+    "DLC produit d'origine: <date>" sur une seule ligne (~34 caractères)
+    chevauchait le QR à l'impression physique réelle -- "Référence: ..."
+    (~23 caractères, même position/police) avait été confirmée sans
+    chevauchement, donc le libellé seul est mis sur cette longueur validée
+    en renvoyant la date à la ligne suivante. Le QR est aussi décalé de
+    64 dots (8mm @ 203dpi) vers la droite en marge de sécurité
+    supplémentaire."""
     origine_line = ''
     if date_limite_produit_origine:
         origine_line = (
-            "^FO40,410^FDDLC produit d'origine: "
-            f"{_zpl_safe(date_limite_produit_origine)}^FS\n"
+            "^FO40,410^FDDLC produit d'origine:^FS\n"
+            f"^FO40,445^FD{_zpl_safe(date_limite_produit_origine)}^FS\n"
         )
     return (
         '^XA\n'
@@ -49,7 +57,7 @@ def build_zpl(reference, product_name, date_ouverture, operateur_name,
         f'^FO40,320^FDRéférence: {_zpl_safe(reference)}^FS\n'
         f'^FO40,355^FDLot: {_zpl_safe(lot_name)}^FS\n'
         f'{origine_line}'
-        f'^FO460,320^BQN,2,5^FDQA,{_zpl_safe(portal_url)}^FS\n'
+        f'^FO524,320^BQN,2,5^FDQA,{_zpl_safe(portal_url)}^FS\n'
         '^XZ\n'
     )
 
